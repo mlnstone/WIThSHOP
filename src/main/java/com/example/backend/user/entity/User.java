@@ -4,7 +4,7 @@ import com.example.backend.cart.entity.Cart;
 import com.example.backend.common.base.EntityDate;
 import com.example.backend.common.enums.Gender;
 import com.example.backend.common.enums.UserProvider;
-import com.example.backend.common.enums.UserType;
+import com.example.backend.common.enums.Role;
 import com.example.backend.orderHistory.entity.OrderHistory;
 import com.example.backend.point.entity.Point;
 import com.example.backend.report.entity.Report;
@@ -37,7 +37,7 @@ public class User extends EntityDate {
     private String userName;
 
     @Enumerated(EnumType.STRING)
-    private UserType userType;
+    private Role userType;
 
     @Enumerated(EnumType.STRING)
     private UserProvider userProvider;

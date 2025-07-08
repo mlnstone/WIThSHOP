@@ -1,6 +1,6 @@
 package com.example.backend.common.enums;
 
-public enum UserType {
+public enum Role {
     ADMIN,
     CUSTOMER
 }
