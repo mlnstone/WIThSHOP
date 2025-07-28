@@ -77,6 +77,6 @@ public class PrincipalDetails implements UserDetails, OAuth2User {
     // OAuth2User 고유 ID (필요 시 userId 등으로 변경 가능)
     @Override
     public String getName() {
-        return ""; // 또는 user.getUserId().toString()
+        return user.getUserEmail(); // 또는 user.getUserId().toString()
     }
 }

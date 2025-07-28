@@ -51,7 +51,8 @@ public class SecurityConfig {
                         "/login/oauth2/**",
                         "/oauth2/authorization/**"
                 ).permitAll()
-                .anyRequest().authenticated();
+                .anyRequest().permitAll(); // ← 여기만 바꿔주면 끝
+//                .anyRequest().authenticated();
 
         httpSecurity
                 .oauth2Login(oauth2 -> oauth2

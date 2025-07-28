@@ -1,6 +1,7 @@
 package com.example.backend.menu.entity;
 
 import com.example.backend.category.entity.Category;
+import com.example.backend.common.enums.MenuStatus;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -29,6 +30,10 @@ public class Menu {
     @Column(nullable = false)
     private Long salePrice;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private MenuStatus status;
+
     private String image;
 
     @Lob
@@ -40,4 +45,5 @@ public class Menu {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id", nullable = false)
     private Category category;
+
 }
