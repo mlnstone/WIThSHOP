@@ -57,7 +57,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
         User newUser = User.builder()
                 .userEmail(email)
-                .userPwd("oauth") // OAuth 로그인은 패스워드 없이 사용하므로 더미값
+                .userPwd("oauth") // OAuth 로그인은 패스워드 없이 사용하니 더미값
                 .userType(Role.CUSTOMER) // 기본 권한
                 .userProvider(provider)
                 .userProviderId((String) attributes.get("sub"))
