@@ -26,7 +26,6 @@ public class JwtTokenProvider {
 
     // application.yml에서 secret 값 가져와서 key에 저장
     public JwtTokenProvider(@Value("${jwt.secret}") String secretKey) {
-        System.out.println(secretKey+"secretKey");
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);
         this.key = Keys.hmacShaKeyFor(keyBytes);
     }
@@ -40,18 +39,23 @@ public class JwtTokenProvider {
 
         long now = (new Date()).getTime();
 
+        // Access Token 유효기간 설정 (예: 30분)
+        Date accessTokenExpiresIn = new Date(now + 1000 * 60 * 30); // 30분
+
         // Access Token 생성
-        Date accessTokenExpiresIn = new Date(now + 86400000);
         String accessToken = Jwts.builder()
-                .setSubject(authentication.getName())
-                .claim("auth", authorities)
-                .setExpiration(accessTokenExpiresIn)
-                .signWith(key, SignatureAlgorithm.HS256)
+                .setSubject(authentication.getName()) // 토큰 주제(subject) : email
+                .claim("auth", authorities)           // 권한(claim) 넣기 ROLE_ADMIN, ROLE_CUSTOMER
+                .setExpiration(accessTokenExpiresIn)  // 만료 시간 설정
+                .signWith(key, SignatureAlgorithm.HS256) // 서명에 사용할 알고리즘과 비밀 키
                 .compact();
+
+        // Refresh Token 유효기간 설정
+        Date refreshTokenExpiresIn = new Date(now + 1000L * 60 * 60 * 24 * 7); // 7일
 
         // Refresh Token 생성
         String refreshToken = Jwts.builder()
-                .setExpiration(new Date(now + 86400000))
+                .setExpiration(refreshTokenExpiresIn)
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
 

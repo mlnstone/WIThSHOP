@@ -6,6 +6,8 @@ import com.example.backend.auth.dto.SignUpRequestDto;
 import com.example.backend.auth.dto.UserManagementDto;
 import com.example.backend.common.enums.Role;
 import com.example.backend.common.enums.UserProvider;
+import com.example.backend.redis.TokenRedis;
+import com.example.backend.redis.TokenRedisRepository;
 import com.example.backend.user.entity.User;
 import com.example.backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -20,22 +22,38 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class AuthService {
+
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
     private final AuthenticationManager authenticationManager;
+    private final TokenRedisRepository tokenRedisRepository; // Redis 저장소 주입
 
     public JwtToken login(String email, String password) {
+
         try {
+            // 1. 로그인 시도
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(email, password)
             );
-            return jwtTokenProvider.generateToken(authentication);
+
+            // 2. AccessToken + RefreshToken 생성
+            JwtToken token = jwtTokenProvider.generateToken(authentication);
+
+            // 3. RefreshToken Redis에 저장
+            tokenRedisRepository.save(
+                    new TokenRedis(
+                            email,                      // id
+                            token.getAccessToken(),     // accessToken
+                            token.getRefreshToken()     // refreshToken
+                    )
+            );
+
+            return token;
+
         } catch (BadCredentialsException e) {
-            // 아이디 또는 비밀번호가 틀린 경우
             throw new RuntimeException("아이디 또는 비밀번호가 잘못되었습니다.");
         } catch (AuthenticationException e) {
-            // 기타 인증 실패
             throw new RuntimeException("로그인에 실패했습니다.");
         }
     }
@@ -44,9 +62,7 @@ public class AuthService {
         if (userRepository.existsByUserEmail(request.getEmail())) {
             throw new RuntimeException("이미 존재하는 이메일입니다.");
         }
-
         String encodedPassword = passwordEncoder.encode(request.getPassword());
-
         User user = request.toEntity(
                 encodedPassword,
                 Role.CUSTOMER,

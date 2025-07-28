@@ -5,6 +5,7 @@ import com.example.backend.auth.dto.LoginRequestDto;
 import com.example.backend.auth.dto.SignUpRequestDto;
 import com.example.backend.auth.dto.UserManagementDto;
 import com.example.backend.auth.service.AuthService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -19,13 +20,13 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/login")
-    public ResponseEntity<JwtToken> login(@RequestBody LoginRequestDto request) {
+    public ResponseEntity<JwtToken> login(@Valid @RequestBody LoginRequestDto request) {
         JwtToken jwtToken = authService.login(request.getEmail(), request.getPassword());
         return ResponseEntity.ok(jwtToken);
     }
 
     @PostMapping("/sign-up")
-    public ResponseEntity<UserManagementDto> signup(@RequestBody SignUpRequestDto request) {
+    public ResponseEntity<UserManagementDto> signup(@Valid @RequestBody SignUpRequestDto request) {
         UserManagementDto response = authService.signup(request);
         return ResponseEntity.ok(response);
     }

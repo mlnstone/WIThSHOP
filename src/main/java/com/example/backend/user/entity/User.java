@@ -11,6 +11,8 @@ import com.example.backend.report.entity.Report;
 import com.example.backend.review.entity.Review;
 import com.example.backend.userCoupon.entity.UserCoupon;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -33,7 +35,9 @@ public class User extends EntityDate {
     private Long userId;
 
     private String userEmail;
+
     private String userPwd;
+
     private String userName;
 
     @Enumerated(EnumType.STRING)
