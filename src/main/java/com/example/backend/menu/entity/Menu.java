@@ -2,6 +2,7 @@ package com.example.backend.menu.entity;
 
 import com.example.backend.category.entity.Category;
 import com.example.backend.common.enums.MenuStatus;
+import com.example.backend.menu.dto.MenuRequestDto;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -46,4 +47,16 @@ public class Menu {
     @JoinColumn(name = "category_id", nullable = false)
     private Category category;
 
+    public void updateMenu(MenuRequestDto dto, Category category) {
+        this.menuName = dto.getMenuName();
+        this.description = dto.getDescription();
+        this.costPrice = dto.getCostPrice();
+        this.originalPrice = dto.getOriginalPrice();
+        this.salePrice = dto.getSalePrice();
+        this.status = dto.getStatus();
+        this.image = dto.getImage();
+        this.detail = dto.getDetail();
+        this.stock = dto.getStock();
+        this.category = category;
+    }
 }

@@ -56,6 +56,27 @@ public class MenuService {
         return MenuAdminResponseDto.from(menu);
     }
 
+    @Transactional
+    public void deleteMenu(Long menuId, Principal principal) {
+        validateAdminUser(principal);
+        menuRepository.deleteById(menuId);
+    }
+
+    @Transactional
+    public MenuAdminResponseDto updateMenu(Long menuId, MenuRequestDto menuRequestDto, Principal principal) {
+        validateAdminUser(principal);
+
+        Menu menu = menuRepository.findById(menuId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 메뉴가 없습니다."));
+
+        Category category = categoryRepository.findById(menuRequestDto.getCategoryId())
+                .orElseThrow(() -> new IllegalArgumentException("해당 카테고리가 없습니다."));
+
+        menu.updateMenu(menuRequestDto, category);
+
+        return MenuAdminResponseDto.from(menu);
+    }
+
     // 관리자 체크
     private void validateAdminUser(Principal principal) {
         User user = userRepository.findByUserEmail(principal.getName())
