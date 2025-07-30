@@ -39,7 +39,7 @@ public class JwtTokenProvider {
 
         long now = (new Date()).getTime();
 
-        // Access Token 유효기간 설정 (예: 30분)
+        // Access Token 유효기간 설정
         Date accessTokenExpiresIn = new Date(now + 1000 * 60 * 30); // 30분
 
         // Access Token 생성
