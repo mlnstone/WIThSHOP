@@ -15,7 +15,7 @@ import java.util.List;
 public class ReviewRepositoryImpl implements ReviewRepositoryCustom {
 
     private final JPAQueryFactory queryFactory;
- 
+
     @Override
     public Page<Review> findAllByMenu_MenuId(Pageable pageable, Long menuId) {
         QReview review = QReview.review;
