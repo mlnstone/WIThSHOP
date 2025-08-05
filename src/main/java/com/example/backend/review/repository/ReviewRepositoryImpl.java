@@ -3,7 +3,6 @@ package com.example.backend.review.repository;
 import com.example.backend.menu.entity.QMenu;
 import com.example.backend.review.dto.ReviewAllResponseDto;
 import com.example.backend.review.entity.QReview;
-import com.example.backend.review.entity.Review;
 import com.example.backend.user.entity.QUser;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -47,14 +46,27 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom {
     }
 
     @Override
-    public Page<Review> findAllByMenu_MenuId(Pageable pageable, Long menuId) {
+    public Page<ReviewAllResponseDto> findAllByMenu_MenuId(Pageable pageable, Long menuId) {
         QReview review = QReview.review;
         QUser user = QUser.user;
+        QMenu menu = QMenu.menu;
 
-        List<Review> content = queryFactory
-                .selectFrom(review)
-                .join(review.user, user).fetchJoin()
-                .leftJoin(user.point).fetchJoin()
+        List<ReviewAllResponseDto> content = queryFactory
+                .select(Projections.constructor(
+                        ReviewAllResponseDto.class,
+                        review.reviewId,
+                        review.reviewTitle,
+                        review.reviewImage,
+                        review.reviewContent,
+                        review.rating,
+                        review.createdAt,
+                        user.userName, // 유저 이름만
+                        menu.menuId, // 메뉴 아이디만
+                        menu.menuName // 메뉴 이름만
+                ))
+                .from(review)
+                .join(review.user, user)
+                .join(review.menu, menu)
                 .where(review.menu.menuId.eq(menuId))
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())

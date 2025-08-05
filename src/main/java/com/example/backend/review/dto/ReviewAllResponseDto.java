@@ -1,6 +1,5 @@
 package com.example.backend.review.dto;
 
-import com.example.backend.review.entity.Review;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -21,24 +20,38 @@ public class ReviewAllResponseDto {
     private Long menuId;
     private String menuName;
 
-    public static ReviewAllResponseDto from(Review review) {
+    /**
+     * public static ReviewAllResponseDto from(Review review) {
+     * return new ReviewAllResponseDto(
+     * review.getReviewId(),
+     * review.getReviewTitle(),
+     * review.getReviewImage(),
+     * review.getReviewContent(),
+     * review.getRating(),
+     * review.getCreatedAt(),
+     * maskName(review.getUser().getUserName()),
+     * review.getMenu().getMenuId(),
+     * review.getMenu().getMenuName()
+     * );
+     * }
+     **/
+    public ReviewAllResponseDto withMaskedUserName() {
         return new ReviewAllResponseDto(
-                review.getReviewId(),
-                review.getReviewTitle(),
-                review.getReviewImage(),
-                review.getReviewContent(),
-                review.getRating(),
-                review.getCreatedAt(),
-                maskName(review.getUser().getUserName()),
-                review.getMenu().getMenuId(),
-                review.getMenu().getMenuName()
+                this.reviewId,
+                this.reviewTitle,
+                this.reviewImage,
+                this.reviewContent,
+                this.rating,
+                this.createdAt,
+                mask(this.userName),
+                this.menuId,
+                this.menuName
         );
     }
 
-    // 김민석 -> 김** , 이황 -> 이** (무조건 3글자)로 마스킹
-    public static String maskName(String name) {
+    // 마스킹 (김민석 -> 김**)
+    private String mask(String name) {
         if (name == null || name.isBlank()) return "";
-
         return name.charAt(0) + "**";
     }
 }

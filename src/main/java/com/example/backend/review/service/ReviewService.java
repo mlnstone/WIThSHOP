@@ -2,7 +2,6 @@ package com.example.backend.review.service;
 
 import com.example.backend.menu.repository.MenuRepository;
 import com.example.backend.review.dto.ReviewAllResponseDto;
-import com.example.backend.review.entity.Review;
 import com.example.backend.review.repository.ReviewRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -26,24 +25,17 @@ public class ReviewService {
             throw new IllegalArgumentException("해당 리뷰는 존재하지 않습니다.");
         }
 
-        return review;
-    }
-
-    @Transactional
-    public ReviewAllResponseDto getReviewByJpa(Long reviewId) {
-        Review review = reviewRepository.findById(reviewId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 리뷰는 존재하지 않습니다."));
-
-        return ReviewAllResponseDto.from(review);
+        return review.withMaskedUserName();
     }
 
     // 메뉴의 리뷰 전체 조회
     public Page<ReviewAllResponseDto> getReviewsByMenu(
             Pageable pageable, Long menuId
     ) {
-        menuRepository.findById(menuId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 메뉴입니다."));
-        Page<Review> reviews = reviewRepository.findAllByMenu_MenuId(pageable, menuId);
-        return reviews.map(ReviewAllResponseDto::from);
+        if (!menuRepository.existsById(menuId)) {
+            throw new IllegalArgumentException("존재하지 않는 메뉴입니다.");
+        }
+        return reviewRepository.findAllByMenu_MenuId(pageable, menuId)
+                .map(ReviewAllResponseDto::withMaskedUserName);
     }
 }
