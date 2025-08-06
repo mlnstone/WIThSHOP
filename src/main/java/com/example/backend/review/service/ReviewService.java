@@ -2,6 +2,7 @@ package com.example.backend.review.service;
 
 import com.example.backend.menu.repository.MenuRepository;
 import com.example.backend.review.dto.ReviewAllResponseDto;
+import com.example.backend.review.dto.ReviewRequestDto;
 import com.example.backend.review.repository.ReviewRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -9,6 +10,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PathVariable;
+
+import java.security.Principal;
 
 @Service
 @RequiredArgsConstructor
@@ -37,5 +40,11 @@ public class ReviewService {
         }
         return reviewRepository.findAllByMenu_MenuId(pageable, menuId)
                 .map(ReviewAllResponseDto::withMaskedUserName);
+    }
+
+
+    public ReviewAllResponseDto createReview(Principal principal, ReviewRequestDto reviewRequestDto) {
+        // if 문으로 이 상품을 구매한 유저만 리뷰를 작성할 수 있게 설정
+        return null;
     }
 }

@@ -17,11 +17,11 @@ import java.security.Principal;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/admin")
+@PreAuthorize("hasRole('ROLE_ADMIN')")
 public class MenuAdminController {
 
     private final MenuService menuService;
 
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @Operation(summary = "메뉴 등록")
     @PostMapping("/menus")
     public ResponseEntity<MenuAdminResponseDto> createMenu(
@@ -33,7 +33,6 @@ public class MenuAdminController {
         return ResponseEntity.ok(menuAdminResponseDto);
     }
 
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @Operation(summary = "메뉴 삭제")
     @DeleteMapping("/menus/{menuId}")
     public ResponseEntity<String> deleteMenu(
@@ -44,7 +43,6 @@ public class MenuAdminController {
         return ResponseEntity.status(HttpStatus.OK).body("메뉴가 삭제되었습니다.");
     }
 
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @Operation(summary = "메뉴 수정")
     @PostMapping("/menus/{menuId}")
     public ResponseEntity<MenuAdminResponseDto> updateMenu(
