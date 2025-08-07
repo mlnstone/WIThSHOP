@@ -1,4 +1,4 @@
-package com.example.backend.post.entity;
+package com.example.backend.board.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -8,12 +8,12 @@ import lombok.*;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
-@Table(name = "post_type")
-public class PostType {
+@Table(name = "board_type")
+public class BoardType {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long postTypeId;
+    private Long boardTypeId;
 
     @Column(length = 50)
     private String title;

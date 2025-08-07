@@ -1,4 +1,4 @@
-package com.example.backend.post.entity;
+package com.example.backend.board.entity;
 
 import com.example.backend.common.base.EntityDate;
 import jakarta.persistence.*;
@@ -9,23 +9,23 @@ import lombok.*;
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
-@Table(name = "post")
-public class Post extends EntityDate {
+@Table(name = "board")
+public class Board extends EntityDate {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long postId;
+    private Long boardId;
 
     @Column(nullable = false)
-    private String postTitle;
+    private String boardTitle;
 
     @Lob
     @Column(nullable = false)
-    private String postContent;
+    private String boardContent;
 
     private Long hit;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "post_type_id", nullable = false)
-    private PostType postType;
+    @JoinColumn(name = "board_type_id", nullable = false)
+    private BoardType boardType;
 }
