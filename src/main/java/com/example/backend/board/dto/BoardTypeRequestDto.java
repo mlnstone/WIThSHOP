@@ -1,5 +1,6 @@
 package com.example.backend.board.dto;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -7,9 +8,8 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class BoardRequestDto {
+public class BoardTypeRequestDto {
 
-    private String boardTitle;
-    private String boardContent;
-    private Long boardTypeId;
+    @NotBlank(message = "게시판 타입 이름은 필수입니다.")
+    private String name;
 }

@@ -11,8 +11,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.security.Principal;
-
 @Tag(name = "메뉴-관리자", description = "관리자의 메뉴 컨트롤러")
 @RestController
 @RequiredArgsConstructor
@@ -25,10 +23,9 @@ public class MenuAdminController {
     @Operation(summary = "메뉴 등록")
     @PostMapping("/menus")
     public ResponseEntity<MenuAdminResponseDto> createMenu(
-            @RequestBody MenuRequestDto menuRequestDto,
-            Principal principal
+            @RequestBody MenuRequestDto menuRequestDto
     ) {
-        MenuAdminResponseDto menuAdminResponseDto = menuService.createMenu(menuRequestDto, principal);
+        MenuAdminResponseDto menuAdminResponseDto = menuService.createMenu(menuRequestDto);
 
         return ResponseEntity.ok(menuAdminResponseDto);
     }
@@ -36,10 +33,9 @@ public class MenuAdminController {
     @Operation(summary = "메뉴 삭제")
     @DeleteMapping("/menus/{menuId}")
     public ResponseEntity<String> deleteMenu(
-            @PathVariable Long menuId,
-            Principal principal
+            @PathVariable Long menuId
     ) {
-        menuService.deleteMenu(menuId, principal);
+        menuService.deleteMenu(menuId);
         return ResponseEntity.status(HttpStatus.OK).body("메뉴가 삭제되었습니다.");
     }
 
@@ -47,10 +43,9 @@ public class MenuAdminController {
     @PostMapping("/menus/{menuId}")
     public ResponseEntity<MenuAdminResponseDto> updateMenu(
             @PathVariable Long menuId,
-            @RequestBody MenuRequestDto menuRequestDto,
-            Principal principal
+            @RequestBody MenuRequestDto menuRequestDto
     ) {
-        MenuAdminResponseDto menuAdminResponseDto = menuService.updateMenu(menuId, menuRequestDto, principal);
+        MenuAdminResponseDto menuAdminResponseDto = menuService.updateMenu(menuId, menuRequestDto);
 
         return ResponseEntity.ok(menuAdminResponseDto);
     }

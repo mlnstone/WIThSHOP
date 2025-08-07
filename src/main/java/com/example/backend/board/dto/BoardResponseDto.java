@@ -24,7 +24,7 @@ public class BoardResponseDto {
                 .boardTitle(board.getBoardTitle())
                 .boardContent(board.getBoardContent())
                 .hit(board.getHit())
-                .boardTypeTitle(board.getBoardType().getTitle())
+                .boardTypeTitle(board.getBoardType().getName())
                 .createdAt(board.getCreatedAt())
                 .updatedAt(board.getUpdatedAt())
                 .build();

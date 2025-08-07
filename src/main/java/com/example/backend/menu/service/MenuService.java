@@ -2,22 +2,17 @@ package com.example.backend.menu.service;
 
 import com.example.backend.category.entity.Category;
 import com.example.backend.category.repository.CategoryRepository;
-import com.example.backend.common.enums.Role;
 import com.example.backend.menu.dto.MenuAdminResponseDto;
 import com.example.backend.menu.dto.MenuAllResponseDto;
 import com.example.backend.menu.dto.MenuRequestDto;
 import com.example.backend.menu.entity.Menu;
 import com.example.backend.menu.repository.MenuRepository;
-import com.example.backend.user.entity.User;
 import com.example.backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.security.Principal;
 
 @Service
 @RequiredArgsConstructor
@@ -46,8 +41,7 @@ public class MenuService {
     }
 
     @Transactional
-    public MenuAdminResponseDto createMenu(MenuRequestDto menuRequestDto, Principal principal) {
-        validateAdminUser(principal);
+    public MenuAdminResponseDto createMenu(MenuRequestDto menuRequestDto) {
         Category category = categoryRepository.findById(menuRequestDto.getCategoryId())
                 .orElseThrow(() -> new IllegalArgumentException("카테고리 없음"));
 
@@ -57,14 +51,14 @@ public class MenuService {
     }
 
     @Transactional
-    public void deleteMenu(Long menuId, Principal principal) {
-        validateAdminUser(principal);
+    public void deleteMenu(Long menuId) {
+        menuRepository.findById(menuId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 메뉴가 없습니다."));
         menuRepository.deleteById(menuId);
     }
 
     @Transactional
-    public MenuAdminResponseDto updateMenu(Long menuId, MenuRequestDto menuRequestDto, Principal principal) {
-        validateAdminUser(principal);
+    public MenuAdminResponseDto updateMenu(Long menuId, MenuRequestDto menuRequestDto) {
 
         Menu menu = menuRepository.findById(menuId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 메뉴가 없습니다."));
@@ -75,15 +69,5 @@ public class MenuService {
         menu.updateMenu(menuRequestDto, category);
 
         return MenuAdminResponseDto.from(menu);
-    }
-
-    // 관리자 체크
-    private void validateAdminUser(Principal principal) {
-        User user = userRepository.findByUserEmail(principal.getName())
-                .orElseThrow(() -> new IllegalArgumentException("해당 유저가 없습니다"));
-
-        if (user.getUserType() != Role.ADMIN) {
-            throw new AccessDeniedException("관리자만 가능한 작업입니다.");
-        }
     }
 }

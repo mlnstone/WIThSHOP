@@ -16,5 +16,9 @@ public class BoardType {
     private Long boardTypeId;
 
     @Column(length = 50)
-    private String title;
+    private String name;
+
+    public void updateName(String name) {
+        this.name = name;
+    }
 }
