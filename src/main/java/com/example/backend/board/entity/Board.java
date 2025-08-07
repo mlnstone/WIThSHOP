@@ -1,5 +1,6 @@
 package com.example.backend.board.entity;
 
+import com.example.backend.board.dto.BoardRequestDto;
 import com.example.backend.common.base.EntityDate;
 import jakarta.persistence.*;
 import lombok.*;
@@ -28,4 +29,10 @@ public class Board extends EntityDate {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "board_type_id", nullable = false)
     private BoardType boardType;
+
+    public void updateBoard(BoardRequestDto boardRequestDto, BoardType boardType) {
+        this.boardTitle = boardRequestDto.getBoardTitle();
+        this.boardContent = boardRequestDto.getBoardContent();
+        this.boardType = boardType;
+    }
 }
