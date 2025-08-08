@@ -77,7 +77,7 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom {
                 .from(review)
                 .where(review.menu.menuId.eq(menuId))
                 .fetchOne();
-
+ 
         return new PageImpl<>(content, pageable, count);
     }
 }
