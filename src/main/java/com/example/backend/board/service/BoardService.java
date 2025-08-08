@@ -6,22 +6,46 @@ import com.example.backend.board.entity.Board;
 import com.example.backend.board.entity.BoardType;
 import com.example.backend.board.repository.BoardRepository;
 import com.example.backend.board.repository.BoardTypeRepository;
+import com.example.backend.user.entity.User;
+import com.example.backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.Duration;
 
 @Service
 @RequiredArgsConstructor
 public class BoardService {
 
+    private final UserRepository userRepository;
     private final BoardRepository boardRepository;
     private final BoardTypeRepository boardTypeRepository;
+    private final RedisTemplate<String, String> redisTemplate;
 
-    public BoardResponseDto getBoard(Long boardId) {
+
+    @Transactional
+    public BoardResponseDto getBoard(Long boardId, String ip, String userEmail) {
         Board board = boardRepository.findById(boardId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 게시글입니다."));
+
+        String redisKey;
+        if (userEmail != null) {
+            User user = userRepository.findByUserEmail(userEmail)
+                    .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
+            redisKey = "board:view:" + boardId + ":" + user.getUserId();
+        } else {
+            redisKey = "board:view:" + boardId + ":" + ip;
+        }
+
+        boolean isFirstView = redisTemplate.opsForValue().setIfAbsent(redisKey, "1", Duration.ofHours(24));
+        if (isFirstView) {
+            board.increaseHit();
+        }
+
         return BoardResponseDto.from(board);
     }
 

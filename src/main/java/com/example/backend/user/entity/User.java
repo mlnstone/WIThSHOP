@@ -3,16 +3,14 @@ package com.example.backend.user.entity;
 import com.example.backend.cart.entity.Cart;
 import com.example.backend.common.base.EntityDate;
 import com.example.backend.common.enums.Gender;
-import com.example.backend.common.enums.UserProvider;
 import com.example.backend.common.enums.Role;
+import com.example.backend.common.enums.UserProvider;
 import com.example.backend.orderHistory.entity.OrderHistory;
 import com.example.backend.point.entity.Point;
 import com.example.backend.report.entity.Report;
 import com.example.backend.review.entity.Review;
 import com.example.backend.userCoupon.entity.UserCoupon;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Pattern;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -55,7 +53,7 @@ public class User extends EntityDate {
 
     private String phone;
 
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Point point;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)

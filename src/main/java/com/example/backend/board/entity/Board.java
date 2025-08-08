@@ -35,4 +35,9 @@ public class Board extends EntityDate {
         this.boardContent = boardRequestDto.getBoardContent();
         this.boardType = boardType;
     }
+
+    public void increaseHit() {
+        if (hit == null) hit = 1L;
+        else hit++;
+    }
 }

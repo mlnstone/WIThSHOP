@@ -6,6 +6,7 @@ import com.example.backend.board.service.BoardService;
 import com.example.backend.common.base.EntityDate;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -14,6 +15,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import java.security.Principal;
 
 @Tag(name = "게시판", description = "게시판")
 @RestController
@@ -25,9 +28,14 @@ public class BoardController extends EntityDate {
     @Operation(summary = "게시글 단건 조회")
     @GetMapping("/board/{boardId}")
     public ResponseEntity<BoardResponseDto> getBoard(
-            @PathVariable Long boardId
+            @PathVariable Long boardId,
+            Principal principal,
+            HttpServletRequest request
     ) {
-        BoardResponseDto boardResponseDto = boardService.getBoard(boardId);
+        String ip = request.getRemoteAddr();
+        String userEmail = principal != null ? principal.getName() : null;
+
+        BoardResponseDto boardResponseDto = boardService.getBoard(boardId, ip, userEmail);
         return ResponseEntity.status(HttpStatus.OK).body(boardResponseDto);
     }
 
