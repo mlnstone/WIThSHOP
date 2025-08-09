@@ -43,7 +43,7 @@ public class ReviewController {
         return ResponseEntity.status(HttpStatus.OK).body(result);
     }
 
-    @PreAuthorize("hasRole('ROLE_CUSTOMER')")
+    @PreAuthorize("isAuthenticated()")
     @Operation(summary = "리뷰 작성")
     @PostMapping("/reviews")
     public ResponseEntity<ReviewAllResponseDto> createReview(

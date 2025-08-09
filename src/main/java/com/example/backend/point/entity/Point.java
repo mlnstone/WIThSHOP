@@ -4,8 +4,6 @@ import com.example.backend.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDateTime;
-
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -24,6 +22,21 @@ public class Point {
     @Column(nullable = false)
     private Long balance = 0L;
 
-    @Column(nullable = false)
-    private LocalDateTime createdAt;
+    public void add(long amount) {
+        this.balance += amount;
+    }
+
+    public void subtract(long amount) {
+        if (this.balance < amount) {
+            throw new IllegalArgumentException("포인트가 부족합니다.");
+        }
+        this.balance -= amount;
+    }
+
+    public void setBalance(long balance) { // change 용
+        if (balance < 0) {
+            throw new IllegalArgumentException("포인트는 음수가 될 수 없습니다.");
+        }
+        this.balance = balance;
+    }
 }

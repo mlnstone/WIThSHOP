@@ -7,8 +7,10 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "point_transaction")
 @Getter
+@Builder
+@AllArgsConstructor
+@Table(name = "point_transaction")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class PointTransaction {
 
@@ -25,6 +27,11 @@ public class PointTransaction {
 
     private String description;
 
-    @Column(nullable = false)
+    @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
+    @PrePersist
+    void prePersist() {
+        if (createdAt == null) createdAt = LocalDateTime.now();
+    }
 }

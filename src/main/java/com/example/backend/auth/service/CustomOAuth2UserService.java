@@ -2,9 +2,11 @@ package com.example.backend.auth.service;
 
 import com.example.backend.common.enums.Role;
 import com.example.backend.common.enums.UserProvider;
+import com.example.backend.point.entity.Point;
+import com.example.backend.point.repository.PointRepository;
+import com.example.backend.user.entity.PrincipalDetails;
 import com.example.backend.user.entity.User;
 import com.example.backend.user.repository.UserRepository;
-import com.example.backend.user.entity.PrincipalDetails;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
@@ -20,6 +22,7 @@ import java.util.Optional;
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     private final UserRepository userRepository;
+    private final PointRepository pointRepository;
 
     @Override
     public OAuth2User loadUser(OAuth2UserRequest request) throws OAuth2AuthenticationException {
@@ -49,6 +52,12 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         String email = (String) attributes.get("email");
         String providerId = (String) attributes.get("sub");
 
+        userRepository.findByUserEmail(email).ifPresent(existing -> {
+            if (existing.getUserProvider() != provider) {
+                throw new IllegalArgumentException("이미 해당 이메일로 가입된 계정이 있습니다.");
+            }
+        });
+
         Optional<User> optionalUser = userRepository.findByUserEmailAndUserProvider(email, provider);
 
         if (optionalUser.isPresent()) {
@@ -63,7 +72,15 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                 .userProviderId((String) attributes.get("sub"))
                 .build();
 
-        return userRepository.save(newUser);
+        User saved = userRepository.save(newUser);
+
+        // ★ 신규 가입자 포인트 0 생성
+        pointRepository.save(Point.builder()
+                .user(saved)
+                .balance(0L)
+                .build());
+
+        return saved;
     }
 
     // 공급자를 UserProvider enum으로 변환
