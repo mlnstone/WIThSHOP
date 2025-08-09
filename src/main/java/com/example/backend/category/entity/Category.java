@@ -22,4 +22,8 @@ public class Category {
 
     @OneToMany(mappedBy = "category", cascade = CascadeType.ALL)
     private List<Menu> menus;
+
+    public void updateName(String name) {
+        this.categoryName = name;
+    }
 }
