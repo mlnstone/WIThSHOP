@@ -7,7 +7,9 @@ import com.example.backend.auth.dto.UserManagementDto;
 import com.example.backend.common.enums.Role;
 import com.example.backend.common.enums.UserProvider;
 import com.example.backend.point.entity.Point;
+import com.example.backend.point.entity.PointSignupConfig;
 import com.example.backend.point.repository.PointRepository;
+import com.example.backend.point.repository.PointSignupConfigRepository;
 import com.example.backend.redis.TokenRedis;
 import com.example.backend.redis.TokenRedisRepository;
 import com.example.backend.user.entity.User;
@@ -30,6 +32,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final PointRepository pointRepository;
     private final JwtTokenProvider jwtTokenProvider;
+    private final PointSignupConfigRepository pointSignupConfigRepository;
     private final TokenRedisRepository tokenRedisRepository; // Redis 저장소 주입
     private final AuthenticationManager authenticationManager;
 
@@ -77,10 +80,14 @@ public class AuthService {
 
         User saved = userRepository.save(user);
 
+        long signupBonus = pointSignupConfigRepository.findById(1L)
+                .map(PointSignupConfig::getAmount)
+                .orElse(0L);
+
         pointRepository.findByUser(saved).orElseGet(() ->
                 pointRepository.save(Point.builder()
                         .user(saved)
-                        .balance(0L)
+                        .balance(signupBonus)
                         .build())
         );
 

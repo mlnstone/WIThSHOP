@@ -3,7 +3,9 @@ package com.example.backend.auth.service;
 import com.example.backend.common.enums.Role;
 import com.example.backend.common.enums.UserProvider;
 import com.example.backend.point.entity.Point;
+import com.example.backend.point.entity.PointSignupConfig;
 import com.example.backend.point.repository.PointRepository;
+import com.example.backend.point.repository.PointSignupConfigRepository;
 import com.example.backend.user.entity.PrincipalDetails;
 import com.example.backend.user.entity.User;
 import com.example.backend.user.repository.UserRepository;
@@ -23,6 +25,8 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     private final UserRepository userRepository;
     private final PointRepository pointRepository;
+    private final PointSignupConfigRepository pointSignupConfigRepository;
+
 
     @Override
     public OAuth2User loadUser(OAuth2UserRequest request) throws OAuth2AuthenticationException {
@@ -48,6 +52,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         }
     }
 
+    // 신규 가입
     private User registerIfNewUser(Map<String, Object> attributes, UserProvider provider) {
         String email = (String) attributes.get("email");
         String providerId = (String) attributes.get("sub");
@@ -75,9 +80,13 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         User saved = userRepository.save(newUser);
 
         // ★ 신규 가입자 포인트 0 생성
+        long signupBonus = pointSignupConfigRepository.findById(1L)
+                .map(PointSignupConfig::getAmount)
+                .orElse(0L);
+
         pointRepository.save(Point.builder()
                 .user(saved)
-                .balance(0L)
+                .balance(signupBonus)
                 .build());
 
         return saved;
