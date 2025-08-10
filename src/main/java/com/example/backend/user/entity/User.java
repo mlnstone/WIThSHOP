@@ -10,6 +10,8 @@ import com.example.backend.point.entity.Point;
 import com.example.backend.report.entity.Report;
 import com.example.backend.review.entity.Review;
 import com.example.backend.userCoupon.entity.UserCoupon;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -34,6 +36,7 @@ public class User extends EntityDate {
 
     private String userEmail;
 
+    @JsonIgnore
     private String userPwd;
 
     private String userName;
@@ -54,6 +57,7 @@ public class User extends EntityDate {
     private String phone;
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonManagedReference
     private Point point;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)

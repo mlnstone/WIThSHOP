@@ -10,6 +10,8 @@ import lombok.*;
 @Table(name = "user_coupon")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
+@Builder
 public class UserCoupon {
 
     @Id

@@ -1,5 +1,6 @@
 package com.example.backend.coupon.entity;
 
+import com.example.backend.common.enums.DiscountType;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -24,6 +25,10 @@ public class Coupon {
 
     @Column(nullable = false)
     private Long discount;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "discount_type", nullable = false)
+    private DiscountType discountType; // ★ 추가
 
     private Long limitQuantity;
 
