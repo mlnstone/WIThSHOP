@@ -1,5 +1,6 @@
 package com.example.backend.coupon.entity;
 
+import com.example.backend.common.enums.CouponState;
 import com.example.backend.common.enums.DiscountType;
 import jakarta.persistence.*;
 import lombok.*;
@@ -37,4 +38,28 @@ public class Coupon {
     private LocalDateTime createdAt;
 
     private LocalDateTime limitAt;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private CouponState state;
+
+    public void update(
+            String couponName,
+            String code,
+            DiscountType discountType,
+            Long discount,
+            Long limitQuantity,
+            Long minAmount,
+            LocalDateTime limitAt,
+            CouponState state
+    ) {
+        this.couponName = couponName;
+        this.code = code;
+        this.discountType = discountType;
+        this.discount = discount;
+        this.limitQuantity = limitQuantity;
+        this.minAmount = minAmount;
+        this.limitAt = limitAt;
+        this.state = state;
+    }
 }

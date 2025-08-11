@@ -17,6 +17,9 @@ public class UserCoupon {
     @Id
     private String userCouponId;
 
+    @Version
+    private Long version;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
@@ -29,4 +32,14 @@ public class UserCoupon {
     @Column(nullable = false)
     private CouponStatus isUsed;
 
+    public void markUsed() {
+        if (this.isUsed == CouponStatus.USED) {
+            throw new IllegalStateException("이미 사용된 쿠폰입니다.");
+        }
+        this.isUsed = CouponStatus.USED;
+    }
+
+    public void markUnused() {
+        this.isUsed = CouponStatus.UNUSED;
+    }
 }

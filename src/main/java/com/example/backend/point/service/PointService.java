@@ -73,7 +73,7 @@ public class PointService {
     // 증/차감
     @Transactional
     public PointBalanceResponse adjustPoint(Long userId, Long amount, String description) {
-        Point point = getPointByUserIdForUpdate(userId); // ← 락 잡음
+        Point point = getPointByUserIdForUpdate(userId);
 
 
         if (point.getBalance() + amount < 0) throw new IllegalArgumentException("포인트가 부족합니다.");

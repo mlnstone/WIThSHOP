@@ -1,5 +1,6 @@
 package com.example.backend.coupon.dto;
 
+import com.example.backend.common.enums.CouponState;
 import com.example.backend.common.enums.DiscountType;
 import com.example.backend.coupon.entity.Coupon;
 import jakarta.validation.constraints.Min;
@@ -13,13 +14,10 @@ import java.time.LocalDateTime;
 public class CouponCreateRequest {
     @NotBlank
     private String couponName;
-
     @NotBlank
     private String code;
-
     @NotNull
-    private DiscountType discountType; // ★ 추가: PERCENT | AMOUNT
-
+    private DiscountType discountType;
     @Min(1)
     private Long discount;
     private Long limitQuantity;
@@ -36,6 +34,7 @@ public class CouponCreateRequest {
                 .minAmount(minAmount)
                 .createdAt(now)
                 .limitAt(limitAt)
+                .state(CouponState.ACTIVE)
                 .build();
     }
 }

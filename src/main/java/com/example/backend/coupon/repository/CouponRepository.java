@@ -1,10 +1,10 @@
 package com.example.backend.coupon.repository;
 
 import com.example.backend.coupon.entity.Coupon;
-import io.lettuce.core.dynamic.annotation.Param;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
@@ -22,4 +22,9 @@ public interface CouponRepository extends JpaRepository<Coupon, Long> {
                    and c.limitQuantity > 0
             """)
     int decreaseQuantityIfAvailable(@Param("couponId") Long couponId);
+
+    @Modifying
+    @Query("update Coupon c set c.limitQuantity = c.limitQuantity + 1 " +
+            "where c.couponId = :couponId")
+    int increaseQuantity(@Param("couponId") Long couponId);
 }
