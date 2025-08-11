@@ -24,6 +24,15 @@ public class CouponAdminController {
 
     private final CouponService couponService;
 
+    @Operation(summary = "특정 유저의 쿠폰 목록 조회(ADMIN)")
+    @GetMapping("/users/{userId}/coupons")
+    public ResponseEntity<List<UserCouponResponse>> findUserCoupons(@PathVariable Long userId) {
+        List<UserCouponResponse> list = couponService.getUserCoupons(userId).stream()
+                .map(UserCouponResponse::from)
+                .toList();
+        return ResponseEntity.ok(list);
+    }
+
     @Operation(summary = "쿠폰 생성")
     @PostMapping
     public ResponseEntity<CouponResponse> create(@RequestBody @Valid CouponCreateRequest req) {

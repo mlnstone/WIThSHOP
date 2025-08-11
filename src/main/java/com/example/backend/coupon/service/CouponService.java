@@ -162,8 +162,15 @@ public class CouponService {
         if (coupon.getDiscountType() == DiscountType.PERCENT) {
             long pct = Math.max(0, Math.min(d, 100));
             return (orderAmount * pct) / 100;
-        } else { // AMOUNT(정액)
+        } else {
             return Math.min(orderAmount, Math.max(0, d));
         }
+    }
+
+    public List<UserCoupon> getUserCoupons(Long userId) {
+
+        userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 유저"));
+        return userCouponRepository.findWithCouponByUserId(userId);
     }
 }
