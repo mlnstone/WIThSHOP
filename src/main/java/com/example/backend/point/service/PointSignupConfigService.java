@@ -51,9 +51,6 @@ public class PointSignupConfigService {
         return cfg.getAmount();
     }
 
-    /**
-     * 존재 보장만 필요할 때 호출 (선택)
-     */
     @Transactional
     public void ensureRow() {
         pointSignupConfigRepository.findById(SINGLE_ROW_ID).orElseGet(() ->
