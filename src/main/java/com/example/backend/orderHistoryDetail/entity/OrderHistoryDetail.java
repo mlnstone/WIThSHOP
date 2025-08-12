@@ -1,9 +1,7 @@
 package com.example.backend.orderHistoryDetail.entity;
 
-import com.example.backend.common.enums.OrderStatus;
 import com.example.backend.menu.entity.Menu;
 import com.example.backend.orderHistory.entity.OrderHistory;
-import com.example.backend.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -12,6 +10,8 @@ import lombok.*;
 @Table(name = "order_history_detail")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
+@Builder
 public class OrderHistoryDetail {
 
     @Id
@@ -31,4 +31,13 @@ public class OrderHistoryDetail {
 
     @Column(nullable = false)
     private Long quantity;
+
+    public static OrderHistoryDetail create(OrderHistory order, Menu menu, long price, long qty) {
+        return OrderHistoryDetail.builder()
+                .orderHistory(order)
+                .menu(menu)
+                .price(price)
+                .quantity(qty)
+                .build();
+    }
 }

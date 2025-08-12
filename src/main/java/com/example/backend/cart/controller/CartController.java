@@ -42,7 +42,7 @@ public class CartController {
     }
 
     @Operation(summary = "장바구니 수량 변경")
-    @PatchMapping("/items/{cartId}")
+    @PutMapping("/items/{cartId}")
     public ResponseEntity<CartItemResponse> changeQty(
             Principal principal,
             @PathVariable Long cartId,

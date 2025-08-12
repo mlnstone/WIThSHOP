@@ -59,4 +59,15 @@ public class Menu {
         this.stock = dto.getStock();
         this.category = category;
     }
+
+    public void decreaseStock(long qty) {
+        if (qty <= 0) throw new IllegalArgumentException("수량은 1 이상");
+        if (this.stock < qty) throw new IllegalArgumentException("재고 부족");
+        this.stock -= qty;
+    }
+
+    public void increaseStock(long qty) {
+        if (qty <= 0) throw new IllegalArgumentException("수량 오류");
+        this.stock += qty;
+    }
 }
