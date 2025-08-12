@@ -6,8 +6,6 @@ import com.example.backend.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDateTime;
-
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -34,4 +32,7 @@ public class Report extends EntityDate {
     @Column(nullable = false)
     private boolean isCompleted;
 
+    public void markCompleted(boolean completed) {
+        this.isCompleted = completed;
+    }
 }
