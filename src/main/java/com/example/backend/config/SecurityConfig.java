@@ -49,7 +49,8 @@ public class SecurityConfig {
                         "/configuration/**",
                         "/oauth2/**",
                         "/login/oauth2/**",
-                        "/oauth2/authorization/**"
+                        "/oauth2/authorization/**",
+                        "/"
                 ).permitAll()
                 .anyRequest().permitAll(); // ← 여기만 바꿔주면 끝
 //                .anyRequest().authenticated();
