@@ -35,7 +35,10 @@ Google OAuth2 기반 로그인, JWT 인증, 상품 등록/주문/리뷰 등 **�
 ### React UI 초기 연결 테스트
 프론트엔드와 백엔드 최초 연결 화면
 
-![React UI 테스트 – 첫 연결](https://github.com/user-attachments/assets/b788b292-e1ed-4ce8-89de-a085c88bb322)
+<details>
+  <summary>관리자</summary>
+  <img width="406" height="329" alt="image" src="https://github.com/user-attachments/assets/b788b292-e1ed-4ce8-89de-a085c88bb322" />
+</details>
 
 ## 게시판 타입
 <details>
