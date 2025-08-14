@@ -37,4 +37,14 @@ Google OAuth2 기반 로그인, JWT 인증, 상품 등록/주문/리뷰 등 **�
 
 ![React UI 테스트 – 첫 연결](https://github.com/user-attachments/assets/b788b292-e1ed-4ce8-89de-a085c88bb322)
 
+## 게시판 타입
+<details>
+  <summary>관리자</summary>
+  <img width="406" height="329" alt="image" src="https://github.com/user-attachments/assets/f5311603-4a8e-4b62-bc60-eb953f8d6c5a" />
+</details>
+
+<details>
+  <summary>사용자</summary>
+  <img width="367" height="228" alt="image" src="https://github.com/user-attachments/assets/faac94e9-f4c9-4372-a579-a82ba4b118bd" />
+</details>
 > 추후 업데이트 예정입니다.
