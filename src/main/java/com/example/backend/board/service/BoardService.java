@@ -14,6 +14,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.time.Duration;
 
@@ -49,13 +50,19 @@ public class BoardService {
         return BoardResponseDto.from(board);
     }
 
-    public Page<BoardResponseDto> getAllBoard(Pageable pageable, String search) {
+    public Page<BoardResponseDto> getAllBoard(Pageable pageable, String search, Long typeId) {
         Page<Board> boards;
 
-        if (search != null && !search.isBlank()) {
-            boards = boardRepository.findByBoardTitleContaining(search, pageable);
+        boolean hasSearch = StringUtils.hasText(search);
+
+        if (typeId != null) {
+            boards = hasSearch
+                    ? boardRepository.findByBoardType_BoardTypeIdAndBoardTitleContaining(typeId, search, pageable)
+                    : boardRepository.findByBoardType_BoardTypeId(typeId, pageable);
         } else {
-            boards = boardRepository.findAll(pageable);
+            boards = hasSearch
+                    ? boardRepository.findByBoardTitleContaining(search, pageable)
+                    : boardRepository.findAll(pageable);
         }
 
         return boards.map(BoardResponseDto::from);

@@ -7,10 +7,10 @@ import com.example.backend.auth.service.CustomOAuth2UserService;
 import com.example.backend.redis.TokenRedis;
 import com.example.backend.redis.TokenRedisRepository;
 import com.example.backend.user.entity.PrincipalDetails;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -21,6 +21,10 @@ import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfigurationSource;
+
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 @Configuration
 @EnableWebSecurity
@@ -31,14 +35,19 @@ public class SecurityConfig {
     private final TokenRedisRepository tokenRedisRepository;
     private final CustomOAuth2UserService customOAuth2UserService;
 
+    // 콜백 url
+    private static final String FRONT_CALLBACK = "http://localhost:3000/oauth2/callback";
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity
                 .httpBasic().disable()
                 .csrf().disable()
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
                 .authorizeHttpRequests()
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .requestMatchers(
                         "/members/login",
                         "/members/sign-up",
@@ -60,13 +69,13 @@ public class SecurityConfig {
                         .userInfoEndpoint(userInfo -> userInfo
                                 .userService(customOAuth2UserService))
                         .successHandler((request, response, authentication) -> {
-                            // OAuth2 로그인 성공 후 처리
+                            // OAuth2 로그인 성공
                             PrincipalDetails principal = (PrincipalDetails) authentication.getPrincipal();
 
-                            // JWT 토큰 생성
+                            // JWT 생성
                             JwtToken token = jwtTokenProvider.generateToken(authentication);
 
-                            // 레디스에 저장
+                            // (선택) 레디스 저장
                             tokenRedisRepository.save(
                                     new TokenRedis(
                                             principal.getUsername(),
@@ -75,11 +84,15 @@ public class SecurityConfig {
                                     )
                             );
 
-                            // 응답을 JSON으로
-                            response.setContentType("application/json;charset=UTF-8");
-                            response.getWriter().write(new ObjectMapper().writeValueAsString(token));
+                            // 프론트 콜백으로 리다이렉트 (쿼리스트링에 토큰 부착)
+                            String redirectUrl = FRONT_CALLBACK
+                                    + "?accessToken=" + URLEncoder.encode(token.getAccessToken(), StandardCharsets.UTF_8)
+                                    + "&refreshToken=" + URLEncoder.encode(token.getRefreshToken(), StandardCharsets.UTF_8);
+
+                            response.sendRedirect(redirectUrl);
                         })
                 );
+
 
         // JWT 인증 필터 등록: UsernamePasswordAuthenticationFilter 전에 실행
         httpSecurity
@@ -120,9 +133,20 @@ public class SecurityConfig {
 //                .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class).build();
 //    }
 
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        var cfg = new org.springframework.web.cors.CorsConfiguration();
+        cfg.setAllowedOrigins(java.util.List.of("http://localhost:3000"));
+        cfg.setAllowedMethods(java.util.List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+        cfg.setAllowedHeaders(java.util.List.of("Authorization", "Content-Type"));
+        cfg.setExposedHeaders(java.util.List.of("Authorization"));
+        cfg.setAllowCredentials(true);
+        cfg.setMaxAge(3600L);
+        return request -> cfg;
+    }
 
     @Bean
-    public PasswordEncoder passwordEncoder() {
+    public static PasswordEncoder passwordEncoder() {
         // 패스워드 암호화 (BCrypt)
         return PasswordEncoderFactories.createDelegatingPasswordEncoder();
     }
@@ -131,5 +155,6 @@ public class SecurityConfig {
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
+
 
 }

@@ -18,6 +18,13 @@ public class CategoryService {
     private final CategoryRepository categoryRepository;
 
     @Transactional(readOnly = true)
+    public CategoryResponseDto getCategory(Long categoryId) {
+        Category category = categoryRepository.findById(categoryId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 카테고리가 존재하지 않습니다."));
+        return CategoryResponseDto.from(category);
+    }
+
+    @Transactional(readOnly = true)
     public List<CategoryResponseDto> getAllCategories() {
         return categoryRepository.findAll().stream()
                 .map(CategoryResponseDto::from)

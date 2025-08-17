@@ -43,10 +43,11 @@ public class BoardController extends EntityDate {
     @GetMapping("/board")
     public ResponseEntity<Page<BoardResponseDto>> getBoardList(
             @PageableDefault Pageable pageable,
-            @RequestParam(required = false) String search
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) Long typeId   // ← 추가
     ) {
-        Page<BoardResponseDto> boardResponseDto = boardService.getAllBoard(pageable, search);
-        return ResponseEntity.ok(boardResponseDto);
+        Page<BoardResponseDto> dto = boardService.getAllBoard(pageable, search, typeId);
+        return ResponseEntity.ok(dto);
     }
 
     @Operation(summary = "게시글 작성")

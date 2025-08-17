@@ -78,5 +78,14 @@ public class User extends EntityDate {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Cart> carts;
 
+    public void updatePassword(String encodedPassword) {
+        if (encodedPassword != null && !encodedPassword.isBlank()) {
+            this.userPwd = encodedPassword;
+        }
+    }
+
+    public boolean matchesPassword(org.springframework.security.crypto.password.PasswordEncoder encoder, String rawPassword) {
+        return rawPassword != null && encoder.matches(rawPassword, this.userPwd);
+    }
 }
 

@@ -9,6 +9,9 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -73,5 +76,18 @@ public class GlobalExceptionHandler {
                 ),
                 HttpStatus.BAD_REQUEST  // ResponseEntity 의 상태 코드 설정
         );
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Map<String, String>> handleIllegalArgument(IllegalArgumentException ex) {
+        Map<String, String> body = new HashMap<>();
+        body.put("message", ex.getMessage());
+        return ResponseEntity.badRequest().body(body); // status 400
+    }
+
+    @ExceptionHandler(DuplicateEmailException.class)
+    public ResponseEntity<Map<String, Object>> handleDup(DuplicateEmailException e) {
+        return ResponseEntity.status(HttpStatus.CONFLICT) // 409
+                .body(Map.of("message", e.getMessage()));
     }
 }

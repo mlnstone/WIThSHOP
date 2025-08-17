@@ -19,7 +19,7 @@ public class MenuRequestDto {
     private String image;
     private String detail;
     private Long stock;
-    private Long categoryId; // 👉 카테고리 엔티티는 서비스에서 직접 조회해서 넣을 예정
+    private Long categoryId;
 
     public Menu toEntity(Category category) {
         return Menu.builder()

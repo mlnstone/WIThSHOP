@@ -16,16 +16,16 @@ import java.util.List;
 @Tag(name = "게시판타입설정", description = "게시판타입설정")
 @RestController
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('ROLE_ADMIN')")
 public class BoardTypeController {
     private final BoardTypeService boardTypeService;
 
     @Operation(summary = "게시판 타입 전체 조회")
-    @GetMapping("/admin/board-types")
+    @GetMapping("/board-types")
     public List<BoardTypeResponseDto> getAllBoardTypes() {
         return boardTypeService.getAllBoardTypes();
     }
 
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @Operation(summary = "게시판 타입 등록")
     @PostMapping("/admin/board-types")
     public ResponseEntity<BoardTypeResponseDto> createBoardType(
@@ -35,6 +35,7 @@ public class BoardTypeController {
         return ResponseEntity.ok(boardTypeResponseDto);
     }
 
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @Operation(summary = "게시판 타입 수정")
     @PutMapping("/admin/board-types/{boardTypeId}")
     public ResponseEntity<BoardTypeResponseDto> updateBoardType(
@@ -45,6 +46,7 @@ public class BoardTypeController {
         return ResponseEntity.ok(boardTypeResponseDto);
     }
 
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @Operation(summary = "게시판 타입 삭제")
     @DeleteMapping("/admin/board-types/{boardTypeId}")
     public ResponseEntity<String> deleteBoardType(

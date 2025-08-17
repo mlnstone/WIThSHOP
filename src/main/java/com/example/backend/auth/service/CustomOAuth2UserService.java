@@ -10,6 +10,7 @@ import com.example.backend.user.entity.PrincipalDetails;
 import com.example.backend.user.entity.User;
 import com.example.backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
@@ -25,6 +26,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     private final UserRepository userRepository;
     private final PointRepository pointRepository;
+    private final PasswordEncoder passwordEncoder;
     private final PointSignupConfigRepository pointSignupConfigRepository;
 
 
@@ -71,7 +73,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
         User newUser = User.builder()
                 .userEmail(email)
-                .userPwd("oauth") // OAuth 로그인은 패스워드 없이 사용하니 더미값
+                .userPwd(passwordEncoder.encode(java.util.UUID.randomUUID().toString()))
                 .userType(Role.CUSTOMER) // 기본 권한
                 .userProvider(provider)
                 .userProviderId((String) attributes.get("sub"))

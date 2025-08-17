@@ -6,6 +6,7 @@ import com.example.backend.auth.dto.SignUpRequestDto;
 import com.example.backend.auth.dto.UserManagementDto;
 import com.example.backend.common.enums.Role;
 import com.example.backend.common.enums.UserProvider;
+import com.example.backend.exception.DuplicateEmailException;
 import com.example.backend.point.entity.Point;
 import com.example.backend.point.entity.PointSignupConfig;
 import com.example.backend.point.repository.PointRepository;
@@ -68,7 +69,7 @@ public class AuthService {
     @Transactional
     public UserManagementDto signup(SignUpRequestDto request) {
         if (userRepository.existsByUserEmail(request.getEmail())) {
-            throw new RuntimeException("이미 존재하는 이메일입니다.");
+            throw new DuplicateEmailException();
         }
 
         String encodedPassword = passwordEncoder.encode(request.getPassword());

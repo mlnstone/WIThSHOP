@@ -20,7 +20,7 @@ import java.util.List;
 public class CartService {
     private final CartRepository cartRepository;
     private final UserRepository userRepository;
-    private final MenuRepository menuRepository; // 이미 있으리라 가정
+    private final MenuRepository menuRepository;
 
     @Transactional
     public Cart addItem(Principal principal, Long menuId, Long quantity) {

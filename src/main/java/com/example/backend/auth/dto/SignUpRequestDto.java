@@ -4,10 +4,7 @@ import com.example.backend.common.enums.Gender;
 import com.example.backend.common.enums.Role;
 import com.example.backend.common.enums.UserProvider;
 import com.example.backend.user.entity.User;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -20,16 +17,22 @@ public class SignUpRequestDto {
     private String email;
 
     @NotNull(message = "비밀번호는 필수 입력 값입니다.")
+    @Size(min = 8, max = 15, message = "비밀번호는 8자 이상 15자 이하여야 합니다.")
     @Pattern(
-            regexp="(?=.*[0-9])(?=.*[a-zA-Z])(?=.*\\W)(?=\\S+$).{8,20}",
-            message="비밀번호는 영문자와, 특수기호가 적어도 1개 이상씩 포함된 8자 ~ 20자로 설정해주세요."
+            regexp = "(?=.*[0-9])(?=.*[a-zA-Z])(?=.*\\W)(?=\\S+$).*",
+            message = "비밀번호는 영문자, 숫자, 특수기호가 각 1개 이상 포함되어야 합니다."
     )
     private String password;
 
     @NotBlank(message = "이름은 필수 입력 값입니다.")
     private String name;
+    @NotBlank(message = "생년월일은 필수입니다.")
     private String birth;
-    private String gender; // "M" or "W"
+
+    @NotNull(message = "성별은 필수입니다.")
+    private String gender; // enum M/W
+
+    @NotBlank(message = "전화번호는 필수입니다.")
     private String phone;
 
     public User toEntity(String encodedPassword, Role role, UserProvider provider) {
