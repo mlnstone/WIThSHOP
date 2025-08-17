@@ -84,8 +84,12 @@ public class User extends EntityDate {
         }
     }
 
-    public boolean matchesPassword(org.springframework.security.crypto.password.PasswordEncoder encoder, String rawPassword) {
-        return rawPassword != null && encoder.matches(rawPassword, this.userPwd);
+    //Oauth 전용
+    public void updateProfile(String name, String birth, Gender gender, String phone) {
+        if (name != null && !name.isBlank()) this.userName = name;
+        if (birth != null && !birth.isBlank()) this.birth = birth;
+        if (gender != null) this.gender = gender;
+        if (phone != null && !phone.isBlank()) this.phone = phone;
     }
 }
 

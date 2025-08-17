@@ -2,6 +2,7 @@ package com.example.backend.user.controller;
 
 import com.example.backend.auth.dto.UserProfileDto;
 import com.example.backend.user.dto.ChangePasswordRequest;
+import com.example.backend.user.dto.UpdateProfileRequest;
 import com.example.backend.user.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -26,5 +27,10 @@ public class UserController {
     @PostMapping("/me/password")
     public void changePassword(Principal principal, @RequestBody @Valid ChangePasswordRequest req) {
         userService.changePassword(principal.getName(), req.getCurrentPw(), req.getNewPw());
+    }
+
+    @PutMapping("/me/profile")
+    public UserProfileDto updateOauth2Profile(Principal principal, @RequestBody @Valid UpdateProfileRequest req) {
+        return userService.updateOauth2Profile(principal.getName(), req);
     }
 }
