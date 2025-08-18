@@ -21,9 +21,15 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -34,26 +40,23 @@ public class AuthService {
     private final PointRepository pointRepository;
     private final JwtTokenProvider jwtTokenProvider;
     private final PointSignupConfigRepository pointSignupConfigRepository;
-    private final TokenRedisRepository tokenRedisRepository; // Redis 저장소 주입
+    private final TokenRedisRepository tokenRedisRepository;
     private final AuthenticationManager authenticationManager;
 
     public JwtToken login(String email, String password) {
-
         try {
-            // 1. 로그인 시도
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(email, password)
             );
 
-            // 2. AccessToken + RefreshToken 생성
             JwtToken token = jwtTokenProvider.generateToken(authentication);
 
-            // 3. RefreshToken Redis에 저장
+            // Redis: email을 키로 access/refresh 저장
             tokenRedisRepository.save(
                     new TokenRedis(
-                            email,                      // id
-                            token.getAccessToken(),     // accessToken
-                            token.getRefreshToken()     // refreshToken
+                            email,
+                            token.getAccessToken(),
+                            token.getRefreshToken()
                     )
             );
 
@@ -64,6 +67,50 @@ public class AuthService {
         } catch (AuthenticationException e) {
             throw new RuntimeException("로그인에 실패했습니다.");
         }
+    }
+
+    /**
+     * ★ Refresh 토큰으로 Access만 재발급
+     */
+    public JwtToken refresh(String authorizationHeaderOrToken) {
+        // 1) "Bearer ..." 제거
+        String refreshToken = jwtTokenProvider.resolveToken(authorizationHeaderOrToken);
+
+        // 2) 유효성 검증
+        if (refreshToken == null || !jwtTokenProvider.validateToken(refreshToken)) {
+            throw new RuntimeException("유효하지 않은 리프레시 토큰입니다.");
+        }
+
+        // 3) subject(email) 가져오기
+        String email = jwtTokenProvider.getUserName(refreshToken);
+
+        // 4) Redis에 저장된 refresh와 일치하는지 검증
+        TokenRedis saved = tokenRedisRepository.findById(email)
+                .orElseThrow(() -> new RuntimeException("리프레시 토큰이 존재하지 않습니다."));
+        if (!refreshToken.equals(saved.getRefreshToken())) {
+            throw new RuntimeException("리프레시 토큰이 일치하지 않습니다.");
+        }
+
+        // 5) 사용자/권한 조회
+        User user = userRepository.findByUserEmail(email)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+
+        Collection<? extends GrantedAuthority> authorities =
+                (user.getUserType() != null)
+                        ? List.of(new SimpleGrantedAuthority(user.getUserType().name()))
+                        : Collections.emptyList();  // ← 타입 명확
+
+// 6) Access 새로 발급
+        String newAccess = jwtTokenProvider.generateAccessToken(email, authorities);
+
+        // 7) Redis에 access 갱신(동일 키(email))
+        tokenRedisRepository.save(new TokenRedis(email, newAccess, refreshToken));
+
+        return JwtToken.builder()
+                .grantType("Bearer")
+                .accessToken(newAccess)
+                .refreshToken(refreshToken)
+                .build();
     }
 
     @Transactional

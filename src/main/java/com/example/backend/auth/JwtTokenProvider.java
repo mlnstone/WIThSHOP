@@ -24,38 +24,37 @@ import java.util.stream.Collectors;
 public class JwtTokenProvider {
     private final Key key;
 
-    // application.yml에서 secret 값 가져와서 key에 저장
+    // 만료 시간(밀리초)
+    private static final long ACCESS_TOKEN_EXP = 1000L * 60L * 30;          // 30분
+    private static final long REFRESH_TOKEN_EXP = 1000L * 60L * 60L * 24L * 7L; // 7일
+
     public JwtTokenProvider(@Value("${jwt.secret}") String secretKey) {
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);
         this.key = Keys.hmacShaKeyFor(keyBytes);
     }
 
-    // Member 정보를 가지고 AccessToken, RefreshToken 을 생성하는 메서드
+    /**
+     * 로그인/OAuth2 성공 시 Access + Refresh 동시 발급
+     */
     public JwtToken generateToken(Authentication authentication) {
-        // 권한 가져오기
-        String authorities = authentication.getAuthorities().stream()
+        String auths = authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.joining(","));
 
-        long now = (new Date()).getTime();
+        long now = System.currentTimeMillis();
 
-        // Access Token 유효기간 설정
-        Date accessTokenExpiresIn = new Date(now + 1000 * 60 * 30); // 30분
-
-        // Access Token 생성
+        Date accessExp = new Date(now + ACCESS_TOKEN_EXP);
         String accessToken = Jwts.builder()
-                .setSubject(authentication.getName()) // 토큰 주제(subject) : email
-                .claim("auth", authorities)           // 권한(claim) 넣기 ROLE_ADMIN, ROLE_CUSTOMER
-                .setExpiration(accessTokenExpiresIn)  // 만료 시간 설정
-                .signWith(key, SignatureAlgorithm.HS256) // 서명에 사용할 알고리즘과 비밀 키
+                .setSubject(authentication.getName())     // email
+                .claim("auth", auths)                      // ROLE_*
+                .setExpiration(accessExp)
+                .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
 
-        // Refresh Token 유효기간 설정
-        Date refreshTokenExpiresIn = new Date(now + 1000L * 60 * 60 * 24 * 7); // 7일
-
-        // Refresh Token 생성
+        Date refreshExp = new Date(now + REFRESH_TOKEN_EXP);
         String refreshToken = Jwts.builder()
-                .setExpiration(refreshTokenExpiresIn)
+                .setSubject(authentication.getName())     // ★ subject 넣어둠 (email)
+                .setExpiration(refreshExp)
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
 
@@ -66,38 +65,56 @@ public class JwtTokenProvider {
                 .build();
     }
 
-    // Jwt 토큰을 복호화하여 토큰에 들어있는 정보를 꺼내는 메서드
-    public Authentication getAuthentication(String accessToken) {
-        // Jwt 토큰 복호화
-        Claims claims = parseClaims(accessToken);
+    /**
+     * 리프레시용: Access 토큰만 새로 발급
+     */
+    public String generateAccessToken(String username, Collection<? extends GrantedAuthority> authorities) {
+        long now = System.currentTimeMillis();
+        Date accessExp = new Date(now + ACCESS_TOKEN_EXP);
 
-        if (claims.get("auth") == null) {
-            throw new RuntimeException("권한 정보가 없는 토큰입니다.");
-        }
+        String auths = authorities == null ? "" :
+                authorities.stream().map(GrantedAuthority::getAuthority).collect(Collectors.joining(","));
 
-        // 클레임에서 권한 정보 가져오기
-        Collection<? extends GrantedAuthority> authorities = Arrays.stream(claims.get("auth").toString().split(","))
-                .map(SimpleGrantedAuthority::new)
-                .collect(Collectors.toList());
-
-        // UserDetails 객체를 만들어서 Authentication return
-        // UserDetails: interface, User: UserDetails를 구현한 class
-        UserDetails principal = new User(claims.getSubject(), "", authorities);
-        return new UsernamePasswordAuthenticationToken(principal, "", authorities);
+        return Jwts.builder()
+                .setSubject(username)
+                .claim("auth", auths)
+                .setExpiration(accessExp)
+                .signWith(key, SignatureAlgorithm.HS256)
+                .compact();
     }
 
-    // 토큰 정보를 검증하는 메서드
+    public long getAccessTokenExpirationTime() {
+        return ACCESS_TOKEN_EXP;
+    }
+
+    /**
+     * Authorization 헤더 혹은 토큰 문자열에서 Bearer 제거
+     */
+    public String resolveToken(String headerOrToken) {
+        if (headerOrToken == null) return null;
+        String v = headerOrToken.trim();
+        if (v.startsWith("Bearer ")) return v.substring(7);
+        return v;
+    }
+
+    /**
+     * 토큰 → subject(email)
+     */
+    public String getUserName(String token) {
+        return parseClaims(token).getSubject();
+    }
+
+    /**
+     * 토큰 유효성 검증 (만료/서명/형식 체크)
+     */
     public boolean validateToken(String token) {
         try {
-            Jwts.parserBuilder()
-                    .setSigningKey(key)
-                    .build()
-                    .parseClaimsJws(token);
+            Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
             return true;
-        } catch (SecurityException | MalformedJwtException e) {
-            log.info("Invalid JWT Token", e);
         } catch (ExpiredJwtException e) {
             log.info("Expired JWT Token", e);
+        } catch (SecurityException | MalformedJwtException e) {
+            log.info("Invalid JWT Token", e);
         } catch (UnsupportedJwtException e) {
             log.info("Unsupported JWT Token", e);
         } catch (IllegalArgumentException e) {
@@ -106,18 +123,34 @@ public class JwtTokenProvider {
         return false;
     }
 
-
-    // accessToken
-    private Claims parseClaims(String accessToken) {
-        try {
-            return Jwts.parserBuilder()
-                    .setSigningKey(key)
-                    .build()
-                    .parseClaimsJws(accessToken)
-                    .getBody();
-        } catch (ExpiredJwtException e) {
-            return e.getClaims();
+    /**
+     * Access 토큰 → Authentication
+     */
+    public Authentication getAuthentication(String accessToken) {
+        Claims claims = parseClaims(accessToken);
+        Object authObj = claims.get("auth");
+        if (authObj == null) {
+            throw new RuntimeException("권한 정보가 없는 토큰입니다.");
         }
+        Collection<? extends GrantedAuthority> authorities =
+                Arrays.stream(authObj.toString().split(","))
+                        .filter(s -> !s.isBlank())
+                        .map(SimpleGrantedAuthority::new)
+                        .collect(Collectors.toList());
+
+        UserDetails principal = new User(claims.getSubject(), "", authorities);
+        return new UsernamePasswordAuthenticationToken(principal, "", authorities);
     }
 
+    /**
+     * 만료된 토큰도 클레임(subject) 파싱 가능하게
+     */
+    private Claims parseClaims(String token) {
+        try {
+            return Jwts.parserBuilder().setSigningKey(key).build()
+                    .parseClaimsJws(token).getBody();
+        } catch (ExpiredJwtException e) {
+            return e.getClaims(); // 만료여도 subject 읽자
+        }
+    }
 }

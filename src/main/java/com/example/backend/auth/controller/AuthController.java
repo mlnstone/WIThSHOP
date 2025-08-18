@@ -8,10 +8,7 @@ import com.example.backend.auth.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -29,5 +26,11 @@ public class AuthController {
     public ResponseEntity<UserManagementDto> signup(@Valid @RequestBody SignUpRequestDto request) {
         UserManagementDto response = authService.signup(request);
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<JwtToken> refresh(@RequestHeader(name = "Authorization", required = false) String authorization) {
+        JwtToken token = authService.refresh(authorization);
+        return ResponseEntity.ok(token);
     }
 }
