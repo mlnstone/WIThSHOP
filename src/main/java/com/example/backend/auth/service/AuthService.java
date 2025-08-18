@@ -55,7 +55,6 @@ public class AuthService {
             tokenRedisRepository.save(
                     new TokenRedis(
                             email,
-                            token.getAccessToken(),
                             token.getRefreshToken()
                     )
             );
@@ -104,7 +103,7 @@ public class AuthService {
         String newAccess = jwtTokenProvider.generateAccessToken(email, authorities);
 
         // 7) Redis에 access 갱신(동일 키(email))
-        tokenRedisRepository.save(new TokenRedis(email, newAccess, refreshToken));
+        tokenRedisRepository.save(new TokenRedis(email, refreshToken));
 
         return JwtToken.builder()
                 .grantType("Bearer")

@@ -80,7 +80,6 @@ public class SecurityConfig {
                             tokenRedisRepository.save(
                                     new TokenRedis(
                                             principal.getUsername(),
-                                            token.getAccessToken(),
                                             token.getRefreshToken()
                                     )
                             );
