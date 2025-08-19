@@ -1,6 +1,7 @@
 package com.example.backend.user.service;
 
 import com.example.backend.auth.dto.UserProfileDto;
+import com.example.backend.common.enums.Gender;
 import com.example.backend.common.enums.UserProvider;
 import com.example.backend.user.dto.UpdateProfileRequest;
 import com.example.backend.user.entity.User;
@@ -46,18 +47,29 @@ public class UserService {
 
     @Transactional
     public UserProfileDto updateOauth2Profile(String email, UpdateProfileRequest req) {
+        int count = 0;
+        System.out.println(++count + "==========================================");
         User user = userRepository.findByUserEmail(email)
                 .orElseThrow(() -> new IllegalStateException("사용자 없음"));
-        
-        // 이미 모든 프로필 정보가 채워져 있다면 수정 불가
-        if (user.getUserName() != null &&
-                user.getBirth() != null &&
-                user.getGender() != null &&
-                user.getPhone() != null) {
-            throw new IllegalStateException("프로필은 최초 1회만 설정할 수 있습니다.");
+
+        boolean alreadyComplete =
+                user.getUserName() != null &&
+                        user.getBirth() != null &&
+                        user.getGender() != null &&
+                        user.getPhone() != null;
+
+        if (alreadyComplete) {
+            // 예외 대신 현재 프로필 그대로 반환 (멱등)
+            return UserProfileDto.from(user);
         }
 
-        user.updateProfile(req.getName(), req.getBirth(), req.getGender(), req.getPhone());
+        // 비어있는 항목만 채우고, 들어온 값이 없으면 기존 값 유지
+        String name = (user.getUserName() == null) ? req.getName() : user.getUserName();
+        String birth = (user.getBirth() == null) ? req.getBirth() : user.getBirth();
+        Gender gender = (user.getGender() == null) ? req.getGender() : user.getGender();
+        String phone = (user.getPhone() == null) ? req.getPhone() : user.getPhone();
+
+        user.updateProfile(name, birth, gender, phone);
         return UserProfileDto.from(user);
     }
 }
