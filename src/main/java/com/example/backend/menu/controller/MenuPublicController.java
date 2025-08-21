@@ -15,12 +15,10 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.security.Principal;
-
 @Tag(name = "메뉴-일반사용자", description = "일반 사용자의 메뉴 컨트롤러")
 @RestController
 @RequiredArgsConstructor
-public class MenuAllController {
+public class MenuPublicController {
     private final MenuService menuService;
 
     @Operation(summary = "메뉴 전체 조회 + 검색", description = "")

@@ -1,5 +1,6 @@
 package com.example.backend.orderHistoryDetail.repository;
 
+import com.example.backend.common.enums.OrderStatus;
 import com.example.backend.orderHistory.dto.MenuSalesByUserDto;
 import com.example.backend.orderHistory.entity.OrderHistory;
 import com.example.backend.orderHistoryDetail.entity.OrderHistoryDetail;
@@ -8,6 +9,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
+import java.util.Collection;
 import java.util.List;
 
 public interface OrderHistoryDetailRepository extends JpaRepository<OrderHistoryDetail, Long> {
@@ -38,4 +40,13 @@ public interface OrderHistoryDetailRepository extends JpaRepository<OrderHistory
             java.time.LocalDateTime to,                          // 종료일(옵션, 미만)
             Pageable pageable
     );
+
+    @Query("""
+            select count(od) > 0
+              from OrderHistoryDetail od
+             where od.orderHistory.user.userId = :userId
+               and od.menu.menuId = :menuId
+               and od.orderHistory.orderStatus in :statuses
+            """)
+    boolean existsPurchased(Long userId, Long menuId, Collection<OrderStatus> statuses);
 }

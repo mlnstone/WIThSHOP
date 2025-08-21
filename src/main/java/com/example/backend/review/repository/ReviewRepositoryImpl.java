@@ -1,7 +1,7 @@
 package com.example.backend.review.repository;
 
 import com.example.backend.menu.entity.QMenu;
-import com.example.backend.review.dto.ReviewAllResponseDto;
+import com.example.backend.review.dto.ReviewPublicResponseDto;
 import com.example.backend.review.entity.QReview;
 import com.example.backend.user.entity.QUser;
 import com.querydsl.core.types.Projections;
@@ -20,14 +20,14 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom {
 
     // ReviewRepositoryImpl.java
     @Override
-    public ReviewAllResponseDto findReviewById(Long reviewId) {
+    public ReviewPublicResponseDto findReviewById(Long reviewId) {
         QReview review = QReview.review;
         QUser user = QUser.user;
         QMenu menu = QMenu.menu;
 
         return queryFactory
                 .select(Projections.constructor(
-                        ReviewAllResponseDto.class,
+                        ReviewPublicResponseDto.class,
                         review.reviewId,
                         review.reviewTitle,
                         review.reviewImage,
@@ -46,14 +46,14 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom {
     }
 
     @Override
-    public Page<ReviewAllResponseDto> findAllByMenu_MenuId(Pageable pageable, Long menuId) {
+    public Page<ReviewPublicResponseDto> findAllByMenu_MenuId(Pageable pageable, Long menuId) {
         QReview review = QReview.review;
         QUser user = QUser.user;
         QMenu menu = QMenu.menu;
 
-        List<ReviewAllResponseDto> content = queryFactory
+        List<ReviewPublicResponseDto> content = queryFactory
                 .select(Projections.constructor(
-                        ReviewAllResponseDto.class,
+                        ReviewPublicResponseDto.class,
                         review.reviewId,
                         review.reviewTitle,
                         review.reviewImage,
@@ -77,7 +77,7 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom {
                 .from(review)
                 .where(review.menu.menuId.eq(menuId))
                 .fetchOne();
- 
+
         return new PageImpl<>(content, pageable, count);
     }
 }

@@ -1,7 +1,8 @@
 package com.example.backend.review.controller;
 
-import com.example.backend.review.dto.ReviewAllResponseDto;
+import com.example.backend.review.dto.ReviewPublicResponseDto;
 import com.example.backend.review.dto.ReviewRequestDto;
+import com.example.backend.review.dto.ReviewSummaryDto;
 import com.example.backend.review.service.ReviewService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -25,34 +26,39 @@ public class ReviewController {
 
     @Operation(summary = "리뷰 단건 조회")
     @GetMapping("/reviews/{reviewId}")
-    public ResponseEntity<ReviewAllResponseDto> getReviews(
+    public ResponseEntity<ReviewPublicResponseDto> getReviews(
             @PathVariable Long reviewId
     ) {
-        ReviewAllResponseDto reviewAllResponseDto = reviewService.getReview(reviewId);
-        return ResponseEntity.status(HttpStatus.OK).body(reviewAllResponseDto);
+        ReviewPublicResponseDto reviewPublicResponseDto = reviewService.getReview(reviewId);
+        return ResponseEntity.status(HttpStatus.OK).body(reviewPublicResponseDto);
     }
 
     @Operation(summary = "메뉴의 전체 리뷰 페이징 조회")
     @GetMapping("/menus/{menuId}/reviews")
-    public ResponseEntity<Page<ReviewAllResponseDto>> getReviewsByMenu(
+    public ResponseEntity<Page<ReviewPublicResponseDto>> getReviewsByMenu(
             @PageableDefault Pageable pageable,
             @PathVariable Long menuId
 
     ) {
-        Page<ReviewAllResponseDto> result = reviewService.getReviewsByMenu(pageable, menuId);
+        Page<ReviewPublicResponseDto> result = reviewService.getReviewsByMenu(pageable, menuId);
         return ResponseEntity.status(HttpStatus.OK).body(result);
     }
 
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "리뷰 작성")
     @PostMapping("/reviews")
-    public ResponseEntity<ReviewAllResponseDto> createReview(
+    public ResponseEntity<ReviewPublicResponseDto> createReview(
             Principal principal,
             @RequestBody ReviewRequestDto reviewRequestDto
     ) {
-        ReviewAllResponseDto reviewAllResponseDto = reviewService.createReview(principal, reviewRequestDto);
-        return ResponseEntity.ok(reviewAllResponseDto);
+        ReviewPublicResponseDto reviewPublicResponseDto = reviewService.createReview(principal, reviewRequestDto);
+        return ResponseEntity.ok(reviewPublicResponseDto);
     }
 
+    @Operation(summary = "메뉴의 리뷰 요약(개수/평균)")
+    @GetMapping("/menus/{menuId}/reviews/summary")
+    public ResponseEntity<ReviewSummaryDto> getReviewSummary(@PathVariable Long menuId) {
+        return ResponseEntity.ok(reviewService.getReviewSummary(menuId));
+    }
 
 }

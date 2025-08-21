@@ -1,5 +1,6 @@
 package com.example.backend.review.dto;
 
+import com.example.backend.review.entity.Review;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -7,7 +8,7 @@ import java.time.LocalDateTime;
 
 @Getter
 @AllArgsConstructor
-public class ReviewAllResponseDto {
+public class ReviewPublicResponseDto {
     private Long reviewId;
     private String reviewTitle;
     private String reviewImage;
@@ -20,23 +21,22 @@ public class ReviewAllResponseDto {
     private Long menuId;
     private String menuName;
 
-    /**
-     * public static ReviewAllResponseDto from(Review review) {
-     * return new ReviewAllResponseDto(
-     * review.getReviewId(),
-     * review.getReviewTitle(),
-     * review.getReviewImage(),
-     * review.getReviewContent(),
-     * review.getRating(),
-     * review.getCreatedAt(),
-     * maskName(review.getUser().getUserName()),
-     * review.getMenu().getMenuId(),
-     * review.getMenu().getMenuName()
-     * );
-     * }
-     **/
-    public ReviewAllResponseDto withMaskedUserName() {
-        return new ReviewAllResponseDto(
+    public static ReviewPublicResponseDto from(Review review) {
+        return new ReviewPublicResponseDto(
+                review.getReviewId(),
+                review.getReviewTitle(),
+                review.getReviewImage(),
+                review.getReviewContent(),
+                review.getRating(),
+                review.getCreatedAt(),
+                review.getUser().getUserName(),
+                review.getMenu().getMenuId(),
+                review.getMenu().getMenuName()
+        );
+    }
+
+    public ReviewPublicResponseDto withMaskedUserName() {
+        return new ReviewPublicResponseDto(
                 this.reviewId,
                 this.reviewTitle,
                 this.reviewImage,

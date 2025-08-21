@@ -1,18 +1,17 @@
 package com.example.backend.review.entity;
 
+import com.example.backend.common.base.EntityDate;
 import com.example.backend.menu.entity.Menu;
 import com.example.backend.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
-
-import java.time.LocalDateTime;
 
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
-public class Review {
+public class Review extends EntityDate {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -29,9 +28,6 @@ public class Review {
 
     @Column(nullable = false)
     private Double rating;
-
-    @Column(nullable = false)
-    private LocalDateTime createdAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "menu_id", nullable = false)

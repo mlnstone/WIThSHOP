@@ -18,7 +18,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @PreAuthorize("isAuthenticated()")
 @RequestMapping("/coupons")
-public class CouponController {
+public class CouponPublicController {
 
     private final CouponService couponService;
 
