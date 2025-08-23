@@ -31,6 +31,13 @@ public class CartController {
         return ResponseEntity.ok(CartListResponse.from(carts));
     }
 
+    @Operation(summary = "장바구니 라인(행) 개수")
+    @GetMapping("/count")
+    public ResponseEntity<Long> count(Principal principal) {
+        long count = cartService.countLines(principal);
+        return ResponseEntity.ok(count);
+    }
+
     @Operation(summary = "장바구니 담기(동일 메뉴면 수량만 증가)")
     @PostMapping("/items")
     public ResponseEntity<CartItemResponse> add(

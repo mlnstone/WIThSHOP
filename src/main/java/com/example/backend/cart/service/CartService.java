@@ -85,4 +85,10 @@ public class CartService {
         }
         return cart;
     }
+
+    @Transactional(readOnly = true)
+    public long countLines(Principal principal) {
+        Long userId = getUser(principal).getUserId();
+        return cartRepository.countByUser_UserId(userId);
+    }
 }
