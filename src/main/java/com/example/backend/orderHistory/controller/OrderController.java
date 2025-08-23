@@ -44,13 +44,12 @@ public class OrderController {
         return ResponseEntity.ok(orderService.getMyOrders(principal, pageable));
     }
 
-    @Operation(summary = "내 주문 상세 조회")
-    @GetMapping("/{orderId}")
+    @GetMapping("/code/{orderCode}")
     public ResponseEntity<OrderResponse> myOrderDetail(
             Principal principal,
-            @PathVariable Long orderId
+            @PathVariable String orderCode
     ) {
-        return ResponseEntity.ok(orderService.getMyOrderDetail(principal, orderId));
+        return ResponseEntity.ok(orderService.getMyOrderDetailByCode(principal, orderCode));
     }
 
     @Operation(summary = "주문 취소")

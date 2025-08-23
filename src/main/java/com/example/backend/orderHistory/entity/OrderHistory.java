@@ -18,6 +18,9 @@ public class OrderHistory {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long orderId;
 
+    @Column(nullable = false, unique = true, updatable = false, length = 36)
+    private String orderCode;  // 외부 노출용 UUID
+
     @Column(nullable = false)
     private Long orderPrice;
 
@@ -38,7 +41,15 @@ public class OrderHistory {
                 .orderStatus(OrderStatus.REQUESTED)
                 .orderCreatedAt(now)
                 .orderPrice(0L)
+                .orderCode(java.util.UUID.randomUUID().toString())
                 .build();
+    }
+
+    @PrePersist
+    public void init() {
+        if (this.orderCode == null) {
+            this.orderCode = java.util.UUID.randomUUID().toString();
+        }
     }
 
     public void changeOrderPrice(long price) {

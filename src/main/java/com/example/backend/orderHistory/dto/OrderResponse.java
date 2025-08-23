@@ -12,6 +12,7 @@ import java.util.List;
 @Builder
 public class OrderResponse {
     private Long orderId;
+    private String orderCode;
     private Long orderPrice;
     private LocalDateTime orderCreatedAt;
     private OrderStatus orderStatus;

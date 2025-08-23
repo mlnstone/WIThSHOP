@@ -79,6 +79,7 @@ public class OrderService {
 
         return OrderResponse.builder()
                 .orderId(order.getOrderId())
+                .orderCode(order.getOrderCode())
                 .orderPrice(order.getOrderPrice())
                 .orderCreatedAt(order.getOrderCreatedAt())
                 .orderStatus(order.getOrderStatus())
@@ -90,6 +91,12 @@ public class OrderService {
     public OrderResponse cancelMyOrder(Principal principal, Long orderId) {
         OrderHistory order = getOwnedOrder(principal, orderId);
         order.cancel();
+
+        List<OrderHistoryDetail> details = orderHistoryDetailRepository.findByOrderHistory(order);
+        for (OrderHistoryDetail d : details) {
+            d.getMenu().increaseStock(d.getQuantity());
+        }
+        
         return toOrderResponse(order); // 트랜잭션 내 엔티티 기준 즉시 매핑
     }
 
@@ -100,10 +107,6 @@ public class OrderService {
                 .map(this::toOrderResponse);
     }
 
-    public OrderResponse getMyOrderDetail(Principal principal, Long orderId) {
-        OrderHistory order = getOwnedOrder(principal, orderId);
-        return toOrderResponse(order);
-    }
 
     // 메서드
     private User getLoginUser(Principal principal) {
@@ -135,10 +138,19 @@ public class OrderService {
 
         return OrderResponse.builder()
                 .orderId(order.getOrderId())
+                .orderCode(order.getOrderCode())
                 .orderPrice(order.getOrderPrice())
                 .orderCreatedAt(order.getOrderCreatedAt())
                 .orderStatus(order.getOrderStatus())
                 .items(items)
                 .build();
+    }
+
+    public OrderResponse getMyOrderDetailByCode(Principal principal, String orderCode) {
+        User user = getLoginUser(principal);
+        OrderHistory order = orderHistoryRepository
+                .findByOrderCodeAndUser(orderCode, user)
+                .orElseThrow(() -> new IllegalArgumentException("주문 없음"));
+        return toOrderResponse(order);
     }
 }

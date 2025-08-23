@@ -7,6 +7,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.Optional;
+
 public interface OrderHistoryRepository extends JpaRepository<OrderHistory, Long> {
     Page<OrderHistory> findByUser(User user, Pageable pageable);
 
@@ -15,4 +17,7 @@ public interface OrderHistoryRepository extends JpaRepository<OrderHistory, Long
     Page<OrderHistory> findByOrderStatus(OrderStatus status, Pageable pageable);
 
     Page<OrderHistory> findByUser_UserIdAndOrderStatus(Long userId, OrderStatus status, Pageable pageable);
+
+    Optional<OrderHistory> findByOrderCodeAndUser(String orderCode, User user);
+
 }
