@@ -1,6 +1,6 @@
 package com.example.backend.menu.controller;
 
-import com.example.backend.menu.dto.MenuAllResponseDto;
+import com.example.backend.menu.dto.MenuPublicResponseDto;
 import com.example.backend.menu.service.MenuService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -23,30 +23,30 @@ public class MenuPublicController {
 
     @Operation(summary = "메뉴 전체 조회 + 검색", description = "")
     @GetMapping("/menus")
-    public ResponseEntity<Page<MenuAllResponseDto>> getAllMenus(
+    public ResponseEntity<Page<MenuPublicResponseDto>> getAllMenus(
             @PageableDefault Pageable pageable,
             @RequestParam(required = false) String search
     ) {
-        Page<MenuAllResponseDto> menuResponseDto = menuService.getAllMenu(pageable, search);
+        Page<MenuPublicResponseDto> menuResponseDto = menuService.getAllMenu(pageable, search);
         return ResponseEntity.ok(menuResponseDto);
     }
 
     @Operation(summary = "카테고리로 메뉴 조회")
     @GetMapping("/categories/{categoryId}/menus")
-    public ResponseEntity<Page<MenuAllResponseDto>> getMenusByCategory(
+    public ResponseEntity<Page<MenuPublicResponseDto>> getMenusByCategory(
             @PageableDefault Pageable pageable,
             @PathVariable Long categoryId
     ) {
-        Page<MenuAllResponseDto> menu = menuService.getMenusByCategory(pageable, categoryId);
+        Page<MenuPublicResponseDto> menu = menuService.getMenusByCategory(pageable, categoryId);
         return ResponseEntity.ok(menu);
     }
 
     @Operation(summary = "메뉴 단일 조회")
     @GetMapping("/menus/{menuId}")
-    public ResponseEntity<MenuAllResponseDto> getMenu(
+    public ResponseEntity<MenuPublicResponseDto> getMenu(
             @PathVariable Long menuId
     ) {
-        MenuAllResponseDto menuResponseDto = menuService.getMenu(menuId);
+        MenuPublicResponseDto menuResponseDto = menuService.getMenu(menuId);
         return ResponseEntity.status(HttpStatus.OK).body(menuResponseDto);
     }
 }

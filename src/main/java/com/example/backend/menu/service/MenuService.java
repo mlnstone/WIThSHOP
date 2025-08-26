@@ -3,7 +3,7 @@ package com.example.backend.menu.service;
 import com.example.backend.category.entity.Category;
 import com.example.backend.category.repository.CategoryRepository;
 import com.example.backend.menu.dto.MenuAdminResponseDto;
-import com.example.backend.menu.dto.MenuAllResponseDto;
+import com.example.backend.menu.dto.MenuPublicResponseDto;
 import com.example.backend.menu.dto.MenuRequestDto;
 import com.example.backend.menu.entity.Menu;
 import com.example.backend.menu.repository.MenuRepository;
@@ -22,22 +22,22 @@ public class MenuService {
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
 
-    public Page<MenuAllResponseDto> getAllMenu(Pageable pageable, String search) {
+    public Page<MenuPublicResponseDto> getAllMenu(Pageable pageable, String search) {
         Page<Menu> menu = menuRepository.findAllMenu(pageable, search);
 
-        return menu.map(MenuAllResponseDto::from);
+        return menu.map(MenuPublicResponseDto::from);
     }
 
-    public Page<MenuAllResponseDto> getMenusByCategory(Pageable pageable, Long categoryId) {
+    public Page<MenuPublicResponseDto> getMenusByCategory(Pageable pageable, Long categoryId) {
         Page<Menu> menus = menuRepository.findAllByCategory_CategoryId(pageable, categoryId);
-        return menus.map(MenuAllResponseDto::from);
+        return menus.map(MenuPublicResponseDto::from);
     }
 
-    public MenuAllResponseDto getMenu(Long menuId) {
+    public MenuPublicResponseDto getMenu(Long menuId) {
         Menu menu = menuRepository.findById(menuId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 메뉴가 존재하지 않습니다: " + menuId));
 
-        return MenuAllResponseDto.from(menu);
+        return MenuPublicResponseDto.from(menu);
     }
 
     @Transactional

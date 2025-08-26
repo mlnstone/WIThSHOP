@@ -22,9 +22,9 @@ import java.util.List;
 @Transactional(readOnly = true)
 public class OrderAdminService {
 
+    private final MenuRepository menuRepository;
     private final OrderHistoryRepository orderHistoryRepository;
     private final OrderHistoryDetailRepository orderHistoryDetailRepository;
-    private final MenuRepository menuRepository;
 
     public Page<OrderResponse> list(Long userId, OrderStatus status, Pageable pageable) {
         Page<OrderHistory> page;

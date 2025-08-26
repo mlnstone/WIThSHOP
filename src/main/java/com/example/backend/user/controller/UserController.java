@@ -4,6 +4,7 @@ import com.example.backend.auth.dto.UserProfileDto;
 import com.example.backend.user.dto.ChangePasswordRequest;
 import com.example.backend.user.dto.UpdateProfileRequest;
 import com.example.backend.user.service.UserService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
 
+@Tag(name = "유저", description = "유저")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api")

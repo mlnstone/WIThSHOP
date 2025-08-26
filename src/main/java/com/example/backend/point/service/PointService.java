@@ -114,4 +114,10 @@ public class PointService {
         return pointRepository.findForUpdateByUserId(userId)
                 .orElseThrow(() -> new IllegalArgumentException("포인트 정보가 없습니다."));
     }
+
+    @Transactional
+    public PointBalanceResponse adjustPointByUserId(Long userId, Long amount, String description) {
+        // 이미 존재하는 adjustPoint(Long userId, Long amount, String description) 재사용해도 됩니다.
+        return adjustPoint(userId, amount, description);
+    }
 }

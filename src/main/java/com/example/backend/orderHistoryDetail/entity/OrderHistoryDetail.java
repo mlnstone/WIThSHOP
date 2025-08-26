@@ -1,5 +1,6 @@
 package com.example.backend.orderHistoryDetail.entity;
 
+import com.example.backend.common.base.EntityDate;
 import com.example.backend.menu.entity.Menu;
 import com.example.backend.orderHistory.entity.OrderHistory;
 import jakarta.persistence.*;
@@ -12,7 +13,7 @@ import lombok.*;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
-public class OrderHistoryDetail {
+public class OrderHistoryDetail extends EntityDate {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -141,9 +141,9 @@ public class CouponService {
         if (c.getLimitAt() != null && c.getLimitAt().isBefore(LocalDateTime.now())) {
             throw new IllegalArgumentException("만료된 쿠폰");
         }
-        if (c.getMinAmount() != null && orderAmount < c.getMinAmount()) {
-            throw new IllegalArgumentException("최소 주문금액 미달");
-        }
+//        if (c.getMinAmount() != null && orderAmount < c.getMinAmount()) {
+//            throw new IllegalArgumentException("최소 주문금액 미달");
+//        }
 
         long discountApplied = calcDiscount(c, orderAmount);
         long pay = Math.max(0, orderAmount - discountApplied);
@@ -276,5 +276,50 @@ public class CouponService {
             if (!users.hasNext()) break;
         }
         return issued;
+    }
+
+    @Transactional(readOnly = true)
+    public CouponApplyResponse previewByUserId(Long userId, String userCouponId, Long orderAmount) {
+        var uc = userCouponRepository
+                .findWithCouponByIdAndUserId(userCouponId, userId)
+                .orElseThrow(() -> new IllegalArgumentException("내 쿠폰이 아님"));
+        var c = uc.getCoupon();
+        // 1) 상태/만료 체크
+        if (c.getState() != CouponState.ACTIVE) {
+            throw new IllegalArgumentException("사용 불가 상태의 쿠폰입니다.");
+        }
+        if (c.getLimitAt() != null && c.getLimitAt().isBefore(LocalDateTime.now())) {
+            throw new IllegalArgumentException("만료된 쿠폰입니다.");
+        }
+
+        // 2) 이미 사용된 쿠폰 프리뷰 차단(선호 정책에 따라 0원 반환으로 바꿔도 됨)
+        if (uc.getIsUsed() == CouponStatus.USED) {
+            throw new IllegalStateException("이미 사용된 쿠폰입니다.");
+        }
+        long discountApplied = calcDiscount(uc.getCoupon(), orderAmount);
+        long pay = Math.max(0, orderAmount - discountApplied);
+        return new CouponApplyResponse(orderAmount, discountApplied, pay, "previewByUserId");
+    }
+
+    @Transactional
+    public CouponApplyResponse useByUserId(Long userId, String userCouponId, Long orderAmount) {
+        var uc = userCouponRepository
+                .findWithCouponByIdAndUserId(userCouponId, userId)
+                .orElseThrow(() -> new IllegalArgumentException("내 쿠폰이 아님"));
+
+        var c = uc.getCoupon();
+        if (c.getLimitAt() != null && c.getLimitAt().isBefore(LocalDateTime.now())) {
+            throw new IllegalArgumentException("만료된 쿠폰");
+        }
+//        if (c.getMinAmount() != null && orderAmount < c.getMinAmount()) {
+//            throw new IllegalArgumentException("최소 주문금액 미달");
+//        }
+
+        long discountApplied = calcDiscount(c, orderAmount);
+        long pay = Math.max(0, orderAmount - discountApplied);
+
+        uc.markUsed(); // 사용 확정
+
+        return new CouponApplyResponse(orderAmount, discountApplied, pay, "usedByUserId");
     }
 }

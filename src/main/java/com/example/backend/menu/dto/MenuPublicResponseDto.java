@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class MenuAllResponseDto {
+public class MenuPublicResponseDto {
     private Long menuId;
     private String menuName;
     private String description;
@@ -18,8 +18,8 @@ public class MenuAllResponseDto {
     private String detail;
     private String categoryName;
 
-    public static MenuAllResponseDto from(Menu menu) {
-        return new MenuAllResponseDto(
+    public static MenuPublicResponseDto from(Menu menu) {
+        return new MenuPublicResponseDto(
                 menu.getMenuId(),
                 menu.getMenuName(),
                 menu.getDescription(),

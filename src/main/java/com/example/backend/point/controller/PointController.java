@@ -2,6 +2,7 @@ package com.example.backend.point.controller;
 
 import com.example.backend.point.dto.PointBalanceResponse;
 import com.example.backend.point.service.PointService;
+import com.example.backend.point.service.PointSignupConfigService;
 import com.example.backend.pointTransaction.dto.PointTransactionResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -23,6 +24,13 @@ import java.security.Principal;
 public class PointController {
 
     private final PointService pointService;
+    private final PointSignupConfigService pointSignupConfigService;
+
+    @Operation(summary = "가입 적립금 현재값 조회")
+    @GetMapping
+    public ResponseEntity<Long> get() {
+        return ResponseEntity.ok(pointSignupConfigService.currentAmount());
+    }
 
     @Operation(summary = "내 적립금 잔액 조회")
     @GetMapping("/points")

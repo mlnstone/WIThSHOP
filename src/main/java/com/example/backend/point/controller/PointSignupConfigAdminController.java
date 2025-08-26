@@ -6,7 +6,10 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @Tag(name = "관리자-적립금")
 @RestController
@@ -16,12 +19,6 @@ import org.springframework.web.bind.annotation.*;
 public class PointSignupConfigAdminController {
 
     private final PointSignupConfigService signupPointConfigService;
-
-    @Operation(summary = "가입 적립금 현재값 조회")
-    @GetMapping
-    public ResponseEntity<Long> get() {
-        return ResponseEntity.ok(signupPointConfigService.currentAmount());
-    }
 
     @Operation(summary = "가입 적립금 설정(숫자만)")
     @PutMapping("/{amount}")
