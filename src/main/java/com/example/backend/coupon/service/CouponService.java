@@ -116,7 +116,7 @@ public class CouponService {
     // USER
     public List<UserCoupon> getMyCoupons(Principal principal) {
         Long userId = getCurrentUserId(principal);
-        return userCouponRepository.findActiveWithCouponByUserId(userId, LocalDateTime.now());
+        return userCouponRepository.findActiveUsableWithCouponByUserId(userId, LocalDateTime.now());
     }
 
     public CouponApplyResponse preview(Principal principal, String userCouponId, Long orderAmount) {

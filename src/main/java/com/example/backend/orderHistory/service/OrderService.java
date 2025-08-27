@@ -10,6 +10,7 @@ import com.example.backend.orderHistory.entity.OrderHistory;
 import com.example.backend.orderHistory.repository.OrderHistoryRepository;
 import com.example.backend.orderHistoryDetail.entity.OrderHistoryDetail;
 import com.example.backend.orderHistoryDetail.repository.OrderHistoryDetailRepository;
+import com.example.backend.shipping.service.ShippingFeeConfigService;
 import com.example.backend.user.entity.User;
 import com.example.backend.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +24,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+// OrderService.java
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -33,6 +35,8 @@ public class OrderService {
     private final OrderHistoryRepository orderHistoryRepository;
     private final OrderHistoryDetailRepository orderHistoryDetailRepository;
 
+    private final ShippingFeeConfigService shippingFeeConfigService;
+
     @Transactional
     public OrderResponse createOrder(Principal principal, OrderCreateRequest req) {
         if (req.getItems() == null || req.getItems().isEmpty()) {
@@ -41,13 +45,14 @@ public class OrderService {
 
         User user = getLoginUser(principal);
 
-        long total = 0L;
+        long subtotal = 0L;
         List<OrderItemResponse> itemResponses = new ArrayList<>();
 
         // 주문 헤더 생성 (REQUESTED)
         OrderHistory order = OrderHistory.createRequested(user, LocalDateTime.now());
         orderHistoryRepository.save(order);
 
+        // 상세/합계
         for (OrderCreateRequest.Item it : req.getItems()) {
             if (it.getQuantity() == null || it.getQuantity() <= 0) {
                 throw new IllegalArgumentException("수량은 1 이상이어야 합니다.");
@@ -60,14 +65,13 @@ public class OrderService {
                 throw new IllegalArgumentException("판매중이 아닌 상품: " + menu.getMenuName());
             }
 
-            // 재고 차감(엔티티 메서드)
+            // 재고 차감
             menu.decreaseStock(it.getQuantity());
 
             long price = menu.getSalePrice();
-            long lineTotal = price * it.getQuantity();
-            total += lineTotal;
+            long lineTotal = Math.multiplyExact(price, it.getQuantity());
+            subtotal = Math.addExact(subtotal, lineTotal);
 
-            // 상세 저장 (DTO -> 엔티티)
             orderHistoryDetailRepository.save(it.toEntity(order, menu, price));
 
             itemResponses.add(new OrderItemResponse(
@@ -75,7 +79,21 @@ public class OrderService {
             ));
         }
 
-        order.changeOrderPrice(total);
+        long shippingFee = (req.getShippingFee() != null)
+                ? Math.max(0, req.getShippingFee())
+                : Math.max(0, shippingFeeConfigService.currentAmount());
+
+        long discountCoupon = Math.max(0, (req.getDiscountCoupon() == null ? 0L : req.getDiscountCoupon()));
+        long discountPointsReq = Math.max(0, (req.getDiscountPoints() == null ? 0L : req.getDiscountPoints()));
+
+        long maxUsablePoints = Math.max(0, subtotal - discountCoupon);
+        long discountPoints = Math.min(discountPointsReq, maxUsablePoints);
+
+        if (req.getUserCouponId() != null && !req.getUserCouponId().isBlank()) {
+            order.attachCoupon(req.getUserCouponId());
+        }
+
+        order.changeOrderPrice(subtotal, discountCoupon, discountPoints, shippingFee);
 
         return OrderResponse.builder()
                 .orderId(order.getOrderId())
@@ -92,21 +110,28 @@ public class OrderService {
         OrderHistory order = getOwnedOrder(principal, orderId);
         order.cancel();
 
+        // 재고 롤백
         List<OrderHistoryDetail> details = orderHistoryDetailRepository.findByOrderHistory(order);
         for (OrderHistoryDetail d : details) {
             d.getMenu().increaseStock(d.getQuantity());
         }
-        
-        return toOrderResponse(order); // 트랜잭션 내 엔티티 기준 즉시 매핑
+
+        return toOrderResponse(order);
     }
 
     public Page<OrderResponse> getMyOrders(Principal principal, Pageable pageable) {
         User user = getLoginUser(principal);
-
         return orderHistoryRepository.findByUser(user, pageable)
                 .map(this::toOrderResponse);
     }
 
+    public OrderResponse getMyOrderDetailByCode(Principal principal, String orderCode) {
+        User user = getLoginUser(principal);
+        OrderHistory order = orderHistoryRepository
+                .findByOrderCodeAndUser(orderCode, user)
+                .orElseThrow(() -> new IllegalArgumentException("주문 없음"));
+        return toOrderResponse(order);
+    }
 
     // 메서드
     private User getLoginUser(Principal principal) {
@@ -144,13 +169,5 @@ public class OrderService {
                 .orderStatus(order.getOrderStatus())
                 .items(items)
                 .build();
-    }
-
-    public OrderResponse getMyOrderDetailByCode(Principal principal, String orderCode) {
-        User user = getLoginUser(principal);
-        OrderHistory order = orderHistoryRepository
-                .findByOrderCodeAndUser(orderCode, user)
-                .orElseThrow(() -> new IllegalArgumentException("주문 없음"));
-        return toOrderResponse(order);
     }
 }

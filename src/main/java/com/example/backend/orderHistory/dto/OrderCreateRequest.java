@@ -11,6 +11,11 @@ import java.util.List;
 public class OrderCreateRequest {
     private List<Item> items;
 
+    private String userCouponId;
+    private Long discountCoupon;
+    private Long discountPoints;
+    private Long shippingFee;
+
     @Getter
     public static class Item {
         private Long menuId;

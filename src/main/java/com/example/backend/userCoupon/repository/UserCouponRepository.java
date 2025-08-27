@@ -34,21 +34,24 @@ public interface UserCouponRepository extends JpaRepository<UserCoupon, String> 
     );
 
     @Query("""
-                select uc
-                from UserCoupon uc
-                join fetch uc.coupon c
-                where uc.user.userId = :userId
-                  and c.state = com.example.backend.common.enums.CouponState.ACTIVE
-                  and (c.limitAt is null or c.limitAt >= :now)
-            """)
-    List<UserCoupon> findActiveWithCouponByUserId(@Param("userId") Long userId,
-                                                  @Param("now") java.time.LocalDateTime now);
-
-    @Query("""
               select uc.user.userId
               from UserCoupon uc
               where uc.coupon.couponId = :couponId
                 and uc.user.userId in :userIds
             """)
     List<Long> findOwnedUserIds(Long couponId, List<Long> userIds);
+
+    @Query("""
+            select uc
+            from UserCoupon uc
+            join fetch uc.coupon c
+            where uc.user.userId = :userId
+              and uc.isUsed = com.example.backend.common.enums.CouponStatus.UNUSED
+              and c.state = com.example.backend.common.enums.CouponState.ACTIVE
+              and (c.limitAt is null or c.limitAt >= :now)
+            """)
+    List<UserCoupon> findActiveUsableWithCouponByUserId(
+            @Param("userId") Long userId,
+            @Param("now") java.time.LocalDateTime now
+    );
 }
