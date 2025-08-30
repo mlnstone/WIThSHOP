@@ -6,7 +6,6 @@ import lombok.Getter;
 
 import java.time.LocalDateTime;
 
-// CouponResponse.java
 @Getter
 @AllArgsConstructor
 public class CouponResponse {

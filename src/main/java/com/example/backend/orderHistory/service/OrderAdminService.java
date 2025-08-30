@@ -9,6 +9,8 @@ import com.example.backend.orderHistory.entity.OrderHistory;
 import com.example.backend.orderHistory.repository.OrderHistoryRepository;
 import com.example.backend.orderHistoryDetail.entity.OrderHistoryDetail;
 import com.example.backend.orderHistoryDetail.repository.OrderHistoryDetailRepository;
+import com.example.backend.portOne.CashItem;
+import com.example.backend.portOne.CashItemRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -23,6 +25,7 @@ import java.util.List;
 public class OrderAdminService {
 
     private final MenuRepository menuRepository;
+    private CashItemRepository cashItemRepository;
     private final OrderHistoryRepository orderHistoryRepository;
     private final OrderHistoryDetailRepository orderHistoryDetailRepository;
 
@@ -72,21 +75,21 @@ public class OrderAdminService {
     }
 
     private OrderResponse toResponse(OrderHistory order) {
-        var details = orderHistoryDetailRepository.findByOrderHistory(order);
-        var items = details.stream()
+        // 1) 상세 아이템 조회
+        List<OrderHistoryDetail> details = orderHistoryDetailRepository.findByOrderHistory(order);
+
+        List<OrderItemResponse> items = details.stream()
                 .map(d -> new OrderItemResponse(
                         d.getMenu().getMenuId(),
                         d.getMenu().getMenuName(),
-                        d.getPrice(), d.getQuantity(),
+                        d.getPrice(),
+                        d.getQuantity(),
                         d.getPrice() * d.getQuantity()))
                 .toList();
 
-        return OrderResponse.builder()
-                .orderId(order.getOrderId())
-                .orderPrice(order.getOrderPrice())
-                .orderCreatedAt(order.getOrderCreatedAt())
-                .orderStatus(order.getOrderStatus())
-                .items(items)
-                .build();
+        CashItem cashItem = cashItemRepository.findByOrderCode(order.getOrderCode())
+                .orElseThrow(() -> new IllegalArgumentException("결제 정보가 없습니다"));
+
+        return OrderResponse.from(order, cashItem, items);
     }
 }

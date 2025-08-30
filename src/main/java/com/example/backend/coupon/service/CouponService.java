@@ -322,4 +322,13 @@ public class CouponService {
 
         return new CouponApplyResponse(orderAmount, discountApplied, pay, "usedByUserId");
     }
+
+    @Transactional
+    public void restoreByUserId(Long userId, String userCouponId) {
+        var uc = userCouponRepository
+                .findWithCouponByIdAndUserId(userCouponId, userId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 유저의 쿠폰이 아님"));
+        if (uc.getIsUsed() == CouponStatus.UNUSED) return;
+        uc.markUnused();
+    }
 }

@@ -18,7 +18,6 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom {
 
     private final JPAQueryFactory queryFactory;
 
-    // ReviewRepositoryImpl.java
     @Override
     public ReviewPublicResponseDto findReviewById(Long reviewId) {
         QReview review = QReview.review;

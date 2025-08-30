@@ -35,4 +35,15 @@ public class CashItem {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id")
     private User user;
+
+    @Column(length = 36)          // A안: 결제 ↔ 주문 매핑용(선호)
+    private String orderCode;
+
+    public void attachOrderCode(String orderCode) {
+        this.orderCode = orderCode;
+    }
+
+    public void changePaymentStatus(String newStatus) {
+        this.status = newStatus;
+    }
 }

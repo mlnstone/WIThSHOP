@@ -92,7 +92,6 @@ public class OrderHistory {
         this.discountPoints = discountPoints;
         this.shippingFee = shippingFee;
 
-        // ✅ 최종 결제금액을 orderPrice에 반영
         this.orderPrice = subtotal - discountCoupon - discountPoints + shippingFee;
         if (this.orderPrice < 0) this.orderPrice = 0L;
     }
@@ -111,11 +110,19 @@ public class OrderHistory {
     public void attachCoupon(String userCouponId) {
         this.userCouponId = userCouponId;
     }
-    
+
     public boolean isCancelable() {
         return switch (this.orderStatus) {
             case REQUESTED, APPROVED, REJECTED -> true;
             default -> false;
         };
+    }
+
+    public void markBenefitsReverted() {
+        this.benefitsReverted = true;
+    }
+
+    public boolean isBenefitsReverted() {
+        return Boolean.TRUE.equals(this.benefitsReverted);
     }
 }

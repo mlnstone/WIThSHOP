@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.HashMap;
 import java.util.Map;
 
-// MainController.java
 @RestController
 @RequiredArgsConstructor
 public class MainController {

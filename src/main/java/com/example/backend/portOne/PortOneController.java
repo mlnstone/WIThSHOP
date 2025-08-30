@@ -1,5 +1,6 @@
 package com.example.backend.portOne;
 
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -47,5 +48,15 @@ public class PortOneController {
     ) {
         String loginId = principal.getName();
         return ResponseEntity.ok(portOneService.prepareByItemsWithBenefits(loginId, req));
+    }
+
+    @Operation(summary = "환불", description = "")
+    @PostMapping("/refund")
+    public ResponseEntity<CashItemRefundResDto> refund(
+            Principal principal,
+            @Valid @RequestBody CashItemRefundDto dto
+    ) {
+        String loginId = principal.getName();
+        return ResponseEntity.ok(portOneService.refundPayment(loginId, dto));
     }
 }

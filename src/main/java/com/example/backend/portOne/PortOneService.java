@@ -4,6 +4,7 @@ import com.example.backend.common.enums.MenuStatus;
 import com.example.backend.coupon.service.CouponService;
 import com.example.backend.menu.entity.Menu;
 import com.example.backend.menu.repository.MenuRepository;
+import com.example.backend.orderHistory.repository.OrderHistoryRepository;
 import com.example.backend.point.service.PointService;
 import com.example.backend.shipping.service.ShippingFeeConfigService;
 import com.example.backend.user.entity.User;
@@ -11,6 +12,7 @@ import com.example.backend.user.repository.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.siot.IamportRestClient.IamportClient;
 import com.siot.IamportRestClient.exception.IamportResponseException;
+import com.siot.IamportRestClient.request.CancelData;
 import com.siot.IamportRestClient.request.PrepareData;
 import com.siot.IamportRestClient.response.IamportResponse;
 import com.siot.IamportRestClient.response.Payment;
@@ -38,7 +40,7 @@ public class PortOneService {
     private final UserRepository userRepository;
     private final CashItemRepository cashItemRepository;
     private final MenuRepository menuRepository;
-
+    private final OrderHistoryRepository orderHistoryRepository;
     // ✅ 혜택/배송비 서비스 주입
     private final CouponService couponService;
     private final PointService pointService;
@@ -240,41 +242,66 @@ public class PortOneService {
         }
     }
 
-//    @Transactional
-//    public CashItemRefundResDto refundPayment(String loginId, CashItemRefundDto dto) {
-//        User user = findByUser(loginId);
-//
-//        try {
-//            // 1) 포트원 환불 API 호출
-//            CancelData cancelData = new CancelData(dto.getImpUid(), true); // 전액 환불
-//            cancelData.setReason(dto.getReason());
-//
-//            IamportResponse<Payment> resp = iamportClient.cancelPaymentByImpUid(cancelData);
-//            Payment payment = resp.getResponse();
-//
-//            if (payment == null || !"cancelled".equalsIgnoreCase(payment.getStatus())) {
-//                throw new IllegalArgumentException("결제 환불 실패");
-//            }
-//
-//            // 2) DB 상태 업데이트
-//            CashItem cashItem = cashItemRepository.findByImpUid(dto.getImpUid())
-//                    .orElseThrow(() -> new IllegalArgumentException("없는 결제건입니다"));
-//
-//            cashItem.changePaymentStatus("cancelled"); // 엔티티 메서드에서 status 변경하도록
-//
-//            // 3) 환불 응답 반환
-//            return CashItemRefundResDto.builder()
-//                    .impUid(payment.getImpUid())
-//                    .status(payment.getStatus())
-//                    .cancelledAmount(payment.getCancelAmount().longValue())
-//                    .reason(dto.getReason())
-//                    .build();
-//
-//        } catch (IamportResponseException | IOException e) {
-//            log.error("환불 처리 실패 imp_uid={}", dto.getImpUid(), e);
-//            throw new RuntimeException("결제 환불 중 오류 발생", e);
-//        }
-//    }
+    @Transactional
+    public CashItemRefundResDto refundPayment(String loginId, CashItemRefundDto dto) {
+        User user = findByUser(loginId);
+
+        try {
+            // 1) 포트원 환불 API 호출 (전액)
+            CancelData cancelData = new CancelData(dto.getImpUid(), true);
+            cancelData.setReason(dto.getReason());
+
+            IamportResponse<Payment> resp = iamportClient.cancelPaymentByImpUid(cancelData);
+            Payment payment = resp.getResponse();
+
+            if (payment == null || !"cancelled".equalsIgnoreCase(payment.getStatus())) {
+                throw new IllegalArgumentException("결제 환불 실패");
+            }
+
+            // 2) 결제 레코드 상태 업데이트
+            CashItem cashItem = cashItemRepository.findByImpUid(dto.getImpUid())
+                    .orElseThrow(() -> new IllegalArgumentException("없는 결제건입니다"));
+            cashItem.changePaymentStatus("cancelled");
+
+            // 3) 주문 조회 (B안: 프론트가 orderCode를 보냄)
+            var order = orderHistoryRepository.findByOrderCodeAndUser(dto.getOrderCode(), user)
+                    .orElseThrow(() -> new IllegalArgumentException("주문 없음"));
+
+            // (정책) 주문 상태도 취소로 바꾸고 싶으면 주석 해제
+            // if (order.isCancelable()) order.cancel();
+
+            // 4) 멱등 복구: 이미 복구했다면 스킵
+            if (!order.isBenefitsReverted()) {
+                // 4-1) 쿠폰 복구
+                if (order.getUserCouponId() != null && !order.getUserCouponId().isBlank()
+                        && order.getDiscountCoupon() != null && order.getDiscountCoupon() > 0) {
+                    couponService.restoreByUserId(user.getUserId(), order.getUserCouponId());
+                }
+                // 4-2) 포인트 복구
+                if (order.getDiscountPoints() != null && order.getDiscountPoints() > 0) {
+                    pointService.adjustPointByUserId(
+                            user.getUserId(),
+                            +order.getDiscountPoints(),
+                            "주문취소 복구: " + order.getOrderCode()
+                    );
+                }
+                // 4-3) 멱등 플래그 ON
+                order.markBenefitsReverted();
+            }
+
+            // 5) 응답
+            return CashItemRefundResDto.builder()
+                    .impUid(payment.getImpUid())
+                    .status(payment.getStatus())
+                    .cancelledAmount(payment.getCancelAmount().longValue())
+                    .reason(dto.getReason())
+                    .build();
+
+        } catch (IamportResponseException | IOException e) {
+            log.error("환불 처리 실패 imp_uid={}", dto.getImpUid(), e);
+            throw new RuntimeException("결제 환불 중 오류 발생", e);
+        }
+    }
 
     private User findByUser(String loginId) {
         return userRepository.findByUserEmail(loginId)

@@ -15,6 +15,7 @@ public class OrderCreateRequest {
     private Long discountCoupon;
     private Long discountPoints;
     private Long shippingFee;
+    private String merchantUid;
 
     @Getter
     public static class Item {

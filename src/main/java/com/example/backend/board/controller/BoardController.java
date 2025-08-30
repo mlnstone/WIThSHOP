@@ -44,7 +44,7 @@ public class BoardController extends EntityDate {
     public ResponseEntity<Page<BoardResponseDto>> getBoardList(
             @PageableDefault Pageable pageable,
             @RequestParam(required = false) String search,
-            @RequestParam(required = false) Long typeId   // ← 추가
+            @RequestParam(required = false) Long typeId
     ) {
         Page<BoardResponseDto> dto = boardService.getAllBoard(pageable, search, typeId);
         return ResponseEntity.ok(dto);

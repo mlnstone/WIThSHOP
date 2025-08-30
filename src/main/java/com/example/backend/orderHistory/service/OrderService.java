@@ -10,6 +10,8 @@ import com.example.backend.orderHistory.entity.OrderHistory;
 import com.example.backend.orderHistory.repository.OrderHistoryRepository;
 import com.example.backend.orderHistoryDetail.entity.OrderHistoryDetail;
 import com.example.backend.orderHistoryDetail.repository.OrderHistoryDetailRepository;
+import com.example.backend.portOne.CashItem;
+import com.example.backend.portOne.CashItemRepository;
 import com.example.backend.shipping.service.ShippingFeeConfigService;
 import com.example.backend.user.entity.User;
 import com.example.backend.user.repository.UserRepository;
@@ -24,7 +26,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-// OrderService.java
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -32,10 +33,11 @@ public class OrderService {
 
     private final UserRepository userRepository;
     private final MenuRepository menuRepository;
+    private final CashItemRepository cashItemRepository;
     private final OrderHistoryRepository orderHistoryRepository;
+    private final ShippingFeeConfigService shippingFeeConfigService;
     private final OrderHistoryDetailRepository orderHistoryDetailRepository;
 
-    private final ShippingFeeConfigService shippingFeeConfigService;
 
     @Transactional
     public OrderResponse createOrder(Principal principal, OrderCreateRequest req) {
@@ -94,6 +96,12 @@ public class OrderService {
         }
 
         order.changeOrderPrice(subtotal, discountCoupon, discountPoints, shippingFee);
+
+        String mu = req.getMerchantUid();
+        if (mu != null && !mu.isBlank()) {
+            cashItemRepository.findByMerchantUid(mu)
+                    .ifPresent(ci -> ci.attachOrderCode(order.getOrderCode()));
+        }
 
         return OrderResponse.builder()
                 .orderId(order.getOrderId())
@@ -160,6 +168,10 @@ public class OrderService {
                         d.getPrice() * d.getQuantity()
                 ))
                 .toList();
+        
+        String impUid = cashItemRepository.findByOrderCode(order.getOrderCode())
+                .map(CashItem::getImpUid)
+                .orElse(null);
 
         return OrderResponse.builder()
                 .orderId(order.getOrderId())
@@ -168,6 +180,7 @@ public class OrderService {
                 .orderCreatedAt(order.getOrderCreatedAt())
                 .orderStatus(order.getOrderStatus())
                 .items(items)
+                .impUid(impUid)
                 .build();
     }
 }
