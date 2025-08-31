@@ -27,6 +27,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -99,7 +101,7 @@ public class AuthService {
                         ? List.of(new SimpleGrantedAuthority(user.getUserType().name()))
                         : Collections.emptyList();  // ← 타입 명확
 
-// 6) Access 새로 발급
+        // 6) Access 새로 발급
         String newAccess = jwtTokenProvider.generateAccessToken(email, authorities);
 
         // 7) Redis에 access 갱신(동일 키(email))
@@ -114,6 +116,26 @@ public class AuthService {
 
     @Transactional
     public UserManagementDto signup(SignUpRequestDto request) {
+        // 1900-01-01 ~ 오늘 까지만 허용
+        LocalDate min = LocalDate.of(1900, 1, 1);
+        LocalDate today = LocalDate.now();
+
+        // 프론트가 date input이면 YYYY-MM-DD로 오므로 그대로 파싱
+        LocalDate birth;
+        try {
+            birth = LocalDate.parse(request.getBirth()); // "YYYY-MM-DD"
+        } catch (DateTimeParseException e) {
+            throw new IllegalArgumentException("생년월일 형식이 올바르지 않습니다. (YYYY-MM-DD)");
+        }
+
+        if (birth.isBefore(min) || birth.isAfter(today)) {
+            throw new IllegalArgumentException("생년월일은 1900-01-01 이후, 오늘 이전이어야 합니다.");
+        }
+
+        // 중복 이메일 검사 등 기존 로직...
+        if (userRepository.existsByUserEmail(request.getEmail())) {
+            throw new DuplicateEmailException();
+        }
         if (userRepository.existsByUserEmail(request.getEmail())) {
             throw new DuplicateEmailException();
         }
@@ -139,5 +161,9 @@ public class AuthService {
         );
 
         return UserManagementDto.from(saved);
+    }
+
+    public boolean isEmailAvailable(String email) {
+        return !userRepository.existsByUserEmail(email);
     }
 }
