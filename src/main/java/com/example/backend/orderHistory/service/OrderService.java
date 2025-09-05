@@ -116,7 +116,7 @@ public class OrderService {
     @Transactional
     public OrderResponse cancelMyOrder(Principal principal, Long orderId) {
         OrderHistory order = getOwnedOrder(principal, orderId);
-        order.cancel();
+        order.cancelByCustomer();
 
         // 재고 롤백
         List<OrderHistoryDetail> details = orderHistoryDetailRepository.findByOrderHistory(order);
@@ -168,7 +168,7 @@ public class OrderService {
                         d.getPrice() * d.getQuantity()
                 ))
                 .toList();
-        
+
         String impUid = cashItemRepository.findByOrderCode(order.getOrderCode())
                 .map(CashItem::getImpUid)
                 .orElse(null);

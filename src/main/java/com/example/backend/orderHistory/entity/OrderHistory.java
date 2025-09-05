@@ -22,7 +22,7 @@ public class OrderHistory {
     private String orderCode;  // 외부 노출용 UUID
 
     @Column(nullable = false)
-    private Long orderPrice;   // ✅ 최종 결제금액 (Subtotal - Coupon - Points + Shipping)
+    private Long orderPrice;   // 최종 결제금액 (Subtotal - Coupon - Points + Shipping)
 
     @Column(nullable = false)
     private LocalDateTime orderCreatedAt;
@@ -36,7 +36,7 @@ public class OrderHistory {
     private User user;
 
     // ==========================
-    // ✅ 결제/혜택 스냅샷 필드
+    // 결제/혜택 스냅샷 필드
     // ==========================
     @Column(nullable = false)
     private Long subtotal;        // 상품합계
@@ -96,26 +96,64 @@ public class OrderHistory {
         if (this.orderPrice < 0) this.orderPrice = 0L;
     }
 
-    public void cancel() {
-        if (!isCancelable()) {
-            throw new IllegalStateException("현재 상태에서는 취소할 수 없습니다. 상태=" + orderStatus);
+    // ===== 상태 전이 규칙 고정 =====
+
+    /**
+     * 고객 취소: 주문요청에서만 허용
+     */
+    public void cancelByCustomer() {
+        if (orderStatus != OrderStatus.REQUESTED) {
+            throw new IllegalStateException("현재 상태에서는 주문을 취소할 수 없습니다. 상태=" + orderStatus);
         }
         this.orderStatus = OrderStatus.CANCELED;
     }
 
-    public void changeStatusByAdmin(OrderStatus status) {
-        this.orderStatus = status;
+    /**
+     * 결제 승인: 주문요청에서만
+     */
+    public void approve() {
+        if (orderStatus != OrderStatus.REQUESTED) {
+            throw new IllegalStateException("주문요청 상태에서만 결제승인이 가능합니다.");
+        }
+        this.orderStatus = OrderStatus.APPROVED;
+    }
+
+    /**
+     * 주문 거절: 주문요청/결제실패(REJECTED)만 허용 (멱등)
+     */
+    public void reject() {
+        if (!(orderStatus == OrderStatus.REQUESTED || orderStatus == OrderStatus.REJECTED)) {
+            throw new IllegalStateException("현재 상태에서는 주문을 거절할 수 없습니다.");
+        }
+        this.orderStatus = OrderStatus.REJECTED; // idempotent
+    }
+
+    /**
+     * 배송 시작: 승인됨 다음만
+     */
+    public void ship() {
+        if (orderStatus != OrderStatus.APPROVED) {
+            throw new IllegalStateException("결제완료 상태에서만 배송을 시작할 수 있습니다.");
+        }
+        this.orderStatus = OrderStatus.SHIPPED;
+    }
+
+    /**
+     * 배송 완료: 배송중 다음만
+     */
+    public void deliver() {
+        if (orderStatus != OrderStatus.SHIPPED) {
+            throw new IllegalStateException("배송중 상태에서만 배송완료 처리할 수 있습니다.");
+        }
+        this.orderStatus = OrderStatus.DELIVERED;
+    }
+
+    public boolean isCancelable() {
+        return this.orderStatus == OrderStatus.REQUESTED;
     }
 
     public void attachCoupon(String userCouponId) {
         this.userCouponId = userCouponId;
-    }
-
-    public boolean isCancelable() {
-        return switch (this.orderStatus) {
-            case REQUESTED, APPROVED, REJECTED -> true;
-            default -> false;
-        };
     }
 
     public void markBenefitsReverted() {

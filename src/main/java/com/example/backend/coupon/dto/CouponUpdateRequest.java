@@ -13,7 +13,7 @@ public class CouponUpdateRequest {
     @NotBlank
     private String couponName;
     @NotBlank
-    private String code;          // ← 코드 수정 허용할지 말지 결정
+    private String code;
     @NotNull
     private DiscountType discountType;
     @NotNull

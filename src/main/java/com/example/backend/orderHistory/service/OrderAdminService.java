@@ -25,7 +25,7 @@ import java.util.List;
 public class OrderAdminService {
 
     private final MenuRepository menuRepository;
-    private CashItemRepository cashItemRepository;
+    private final CashItemRepository cashItemRepository;
     private final OrderHistoryRepository orderHistoryRepository;
     private final OrderHistoryDetailRepository orderHistoryDetailRepository;
 
@@ -50,11 +50,30 @@ public class OrderAdminService {
     }
 
     @Transactional
-    public OrderResponse changeStatus(Long orderId, OrderStatus status) {
+    public OrderResponse changeStatus(Long orderId, OrderStatus target) {
         OrderHistory order = orderHistoryRepository.findById(orderId)
                 .orElseThrow(() -> new IllegalArgumentException("주문 없음"));
 
-        order.changeStatusByAdmin(status);
+        switch (target) {
+            case APPROVED -> order.approve();            // REQUESTED → APPROVED
+            case REJECTED -> order.reject();             // REQUESTED/REJECTED → REJECTED
+            case SHIPPED -> order.ship();               // APPROVED → SHIPPED
+            case DELIVERED -> order.deliver();            // SHIPPED → DELIVERED
+            case CANCELED -> {                           // REQUESTED → CANCELED (재고 복구)
+                if (!order.isCancelable()) {
+                    throw new IllegalStateException("현재 상태에서는 취소할 수 없습니다. 상태=" + order.getOrderStatus());
+                }
+                List<OrderHistoryDetail> details = orderHistoryDetailRepository.findByOrderHistory(order);
+                for (OrderHistoryDetail d : details) {
+                    Menu m = d.getMenu();
+                    m.increaseStock(d.getQuantity());
+                }
+                order.cancelByCustomer();
+            }
+            case REQUESTED -> throw new IllegalArgumentException("REQUESTED는 초기 상태로 직접 변경할 수 없습니다.");
+            default -> throw new IllegalArgumentException("지원하지 않는 상태 전이");
+        }
+
         return toResponse(order);
     }
 
@@ -63,19 +82,20 @@ public class OrderAdminService {
         OrderHistory order = orderHistoryRepository.findById(orderId)
                 .orElseThrow(() -> new IllegalArgumentException("주문 없음"));
 
-        if (order.isCancelable()) {
-            List<OrderHistoryDetail> details = orderHistoryDetailRepository.findByOrderHistory(order);
-            for (OrderHistoryDetail d : details) {
-                Menu m = d.getMenu();
-                m.increaseStock(d.getQuantity()); // Menu 엔티티에 추가한 메서드
-            }
+        if (!order.isCancelable()) {
+            throw new IllegalStateException("현재 상태에서는 취소할 수 없습니다. 상태=" + order.getOrderStatus());
         }
-        order.cancel(); // CANCELED 처리
+
+        List<OrderHistoryDetail> details = orderHistoryDetailRepository.findByOrderHistory(order);
+        for (OrderHistoryDetail d : details) {
+            Menu m = d.getMenu();
+            m.increaseStock(d.getQuantity());
+        }
+        order.cancelByCustomer();
         return toResponse(order);
     }
 
     private OrderResponse toResponse(OrderHistory order) {
-        // 1) 상세 아이템 조회
         List<OrderHistoryDetail> details = orderHistoryDetailRepository.findByOrderHistory(order);
 
         List<OrderItemResponse> items = details.stream()

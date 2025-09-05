@@ -23,7 +23,7 @@ public class Review extends EntityDate {
     private String reviewImage;
 
     @Lob
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String reviewContent;
 
     @Column(nullable = false)
@@ -36,4 +36,14 @@ public class Review extends EntityDate {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
+
+    @Column(nullable = false, length = 36)
+    private String orderCode;
+
+    public void update(String reviewTitle, String reviewContent, String reviewImage, Double rating) {
+        if (reviewTitle != null) this.reviewTitle = reviewTitle;
+        if (reviewContent != null) this.reviewContent = reviewContent;
+        if (reviewImage != null) this.reviewImage = reviewImage;
+        if (rating != null) this.rating = rating;
+    }
 }

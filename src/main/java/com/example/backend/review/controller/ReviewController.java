@@ -16,6 +16,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
+import java.util.Map;
 
 @Tag(name = "리뷰", description = "리뷰")
 @RestController
@@ -59,6 +60,17 @@ public class ReviewController {
     @GetMapping("/menus/{menuId}/reviews/summary")
     public ResponseEntity<ReviewSummaryDto> getReviewSummary(@PathVariable Long menuId) {
         return ResponseEntity.ok(reviewService.getReviewSummary(menuId));
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @GetMapping("/reviews/exists")
+    public ResponseEntity<Map<String, Boolean>> existsMyReview(
+            Principal principal,
+            @RequestParam Long menuId,
+            @RequestParam String orderCode
+    ) {
+        boolean exists = reviewService.hasMyReview(principal, menuId, orderCode);
+        return ResponseEntity.ok(Map.of("exists", exists));
     }
 
 }

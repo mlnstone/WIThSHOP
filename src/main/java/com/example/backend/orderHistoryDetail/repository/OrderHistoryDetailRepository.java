@@ -9,8 +9,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
-import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 public interface OrderHistoryDetailRepository extends JpaRepository<OrderHistoryDetail, Long> {
     List<OrderHistoryDetail> findByOrderHistory(OrderHistory orderHistory);
@@ -41,12 +41,15 @@ public interface OrderHistoryDetailRepository extends JpaRepository<OrderHistory
             Pageable pageable
     );
 
+    // 추가: 유저 + 메뉴 + 주문코드 + (허용 상태) 구매 여부
     @Query("""
-            select count(od) > 0
-              from OrderHistoryDetail od
-             where od.orderHistory.user.userId = :userId
-               and od.menu.menuId = :menuId
-               and od.orderHistory.orderStatus in :statuses
+                select (count(ohd) > 0)
+                from OrderHistoryDetail ohd
+                where ohd.orderHistory.user.userId = :userId
+                  and ohd.menu.menuId = :menuId
+                  and ohd.orderHistory.orderCode = :orderCode
+                  and ohd.orderHistory.orderStatus in :statuses
             """)
-    boolean existsPurchased(Long userId, Long menuId, Collection<OrderStatus> statuses);
+    boolean existsPurchasedInOrder(Long userId, Long menuId, String orderCode, Set<OrderStatus> statuses);
+
 }

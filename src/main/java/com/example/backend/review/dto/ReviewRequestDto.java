@@ -17,6 +17,8 @@ public class ReviewRequestDto {
     private String reviewImage;
     private Double rating;
     private Long menuId;
+    private String orderCode;   // 주문번호 받기
+
 
     public Review toEntity(User user, Menu menu) {
         return Review.builder()
@@ -26,6 +28,7 @@ public class ReviewRequestDto {
                 .rating(rating)
                 .user(user)
                 .menu(menu)
+                .orderCode(orderCode)
                 .build();
     }
 }

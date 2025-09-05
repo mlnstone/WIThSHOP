@@ -4,6 +4,7 @@ import com.example.backend.auth.JwtAuthenticationFilter;
 import com.example.backend.auth.JwtToken;
 import com.example.backend.auth.JwtTokenProvider;
 import com.example.backend.auth.service.CustomOAuth2UserService;
+import com.example.backend.exception.OAuth2AuthenticationFailureHandler;
 import com.example.backend.redis.TokenRedis;
 import com.example.backend.redis.TokenRedisRepository;
 import com.example.backend.user.entity.PrincipalDetails;
@@ -34,6 +35,8 @@ public class SecurityConfig {
     private final JwtTokenProvider jwtTokenProvider;
     private final TokenRedisRepository tokenRedisRepository;
     private final CustomOAuth2UserService customOAuth2UserService;
+    private final OAuth2AuthenticationFailureHandler oAuth2AuthenticationFailureHandler;
+
 
     // 콜백 url
     private static final String FRONT_CALLBACK = "http://localhost:3000/oauth2/callback";
@@ -67,36 +70,34 @@ public class SecurityConfig {
 
         httpSecurity
                 .oauth2Login(oauth2 -> oauth2
-                        .userInfoEndpoint(userInfo -> userInfo
-                                .userService(customOAuth2UserService))
+                        .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
+                        // 성공 핸들러
                         .successHandler((request, response, authentication) -> {
-                            // OAuth2 로그인 성공
                             PrincipalDetails principal = (PrincipalDetails) authentication.getPrincipal();
 
-                            // JWT 생성
+                            // JWT 발급
                             JwtToken token = jwtTokenProvider.generateToken(authentication);
 
-                            // (선택) 레디스 저장
+                            // RefreshToken Redis 저장
                             tokenRedisRepository.save(
-                                    new TokenRedis(
-                                            principal.getUsername(),
-                                            token.getRefreshToken()
-                                    )
+                                    new TokenRedis(principal.getUsername(), token.getRefreshToken())
                             );
 
-                            // 프론트 콜백으로 리다이렉트 (쿼리스트링에 토큰 부착)
+                            // 프론트 콜백 URL로 리다이렉트 (토큰 전달)
                             String redirectUrl = FRONT_CALLBACK
                                     + "?accessToken=" + URLEncoder.encode(token.getAccessToken(), StandardCharsets.UTF_8)
                                     + "&refreshToken=" + URLEncoder.encode(token.getRefreshToken(), StandardCharsets.UTF_8);
 
                             response.sendRedirect(redirectUrl);
                         })
+                        .failureHandler(oAuth2AuthenticationFailureHandler)
                 );
 
-
         // JWT 인증 필터 등록: UsernamePasswordAuthenticationFilter 전에 실행
-        httpSecurity
-                .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class);
+        httpSecurity.addFilterBefore(
+                new JwtAuthenticationFilter(jwtTokenProvider),
+                UsernamePasswordAuthenticationFilter.class
+        );
 
         // 설정 완료 후 SecurityFilterChain 반환
         return httpSecurity.build();

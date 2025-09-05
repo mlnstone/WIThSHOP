@@ -6,6 +6,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.Optional;
+
 public interface ReviewRepository extends JpaRepository<Review, Long>, ReviewRepositoryCustom {
 
     @Query("""
@@ -17,5 +19,8 @@ public interface ReviewRepository extends JpaRepository<Review, Long>, ReviewRep
             """)
     ReviewSummaryDto countAndAvgByMenuId(@Param("menuId") Long menuId);
 
-    boolean existsByUser_UserIdAndMenu_MenuId(Long userId, Long menuId);
+    boolean existsByUser_UserIdAndMenu_MenuIdAndOrderCode(Long userId, Long menuId, String orderCode);
+
+    Optional<Review> findByReviewIdAndUser_UserId(Long reviewId, Long userId);
+
 }

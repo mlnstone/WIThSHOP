@@ -79,4 +79,41 @@ public class ReviewRepositoryImpl implements ReviewRepositoryCustom {
 
         return new PageImpl<>(content, pageable, count);
     }
+
+    @Override
+    public Page<ReviewPublicResponseDto> findAllByUserId(Pageable pageable, Long userId) {
+        QReview review = QReview.review;
+        QUser user = QUser.user;
+        QMenu menu = QMenu.menu;
+
+        List<ReviewPublicResponseDto> content = queryFactory
+                .select(Projections.constructor(
+                        ReviewPublicResponseDto.class,
+                        review.reviewId,
+                        review.reviewTitle,
+                        review.reviewImage,
+                        review.reviewContent,
+                        review.rating,
+                        review.createdAt,
+                        user.userName,
+                        menu.menuId,
+                        menu.menuName
+                ))
+                .from(review)
+                .join(review.user, user)
+                .join(review.menu, menu)
+                .where(user.userId.eq(userId))
+                .orderBy(review.createdAt.desc())
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+
+        Long count = queryFactory
+                .select(review.count())
+                .from(review)
+                .where(review.user.userId.eq(userId))
+                .fetchOne();
+
+        return new PageImpl<>(content, pageable, count == null ? 0 : count);
+    }
 }

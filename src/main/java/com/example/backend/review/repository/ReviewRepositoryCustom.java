@@ -9,4 +9,7 @@ public interface ReviewRepositoryCustom {
     ReviewPublicResponseDto findReviewById(Long reviewId);
 
     Page<ReviewPublicResponseDto> findAllByMenu_MenuId(Pageable pageable, Long menuId);
+
+    Page<ReviewPublicResponseDto> findAllByUserId(Pageable pageable, Long userId);
+
 }

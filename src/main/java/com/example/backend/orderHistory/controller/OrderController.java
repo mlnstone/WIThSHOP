@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -39,7 +40,7 @@ public class OrderController {
     public ResponseEntity<Page<OrderResponse>> myOrders(
             Principal principal,
             @ParameterObject
-            @PageableDefault(size = 10, sort = "orderId") Pageable pageable
+            @PageableDefault(size = 10, sort = "orderCreatedAt", direction = Sort.Direction.DESC) Pageable pageable
     ) {
         return ResponseEntity.ok(orderService.getMyOrders(principal, pageable));
     }
@@ -60,4 +61,5 @@ public class OrderController {
     ) {
         return ResponseEntity.ok(orderService.cancelMyOrder(principal, orderId));
     }
+
 }

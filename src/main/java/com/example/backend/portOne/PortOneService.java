@@ -41,7 +41,7 @@ public class PortOneService {
     private final CashItemRepository cashItemRepository;
     private final MenuRepository menuRepository;
     private final OrderHistoryRepository orderHistoryRepository;
-    // ✅ 혜택/배송비 서비스 주입
+    // 혜택/배송비 서비스 주입
     private final CouponService couponService;
     private final PointService pointService;
     private final ShippingFeeConfigService shippingFeeConfigService;
@@ -267,8 +267,8 @@ public class PortOneService {
             var order = orderHistoryRepository.findByOrderCodeAndUser(dto.getOrderCode(), user)
                     .orElseThrow(() -> new IllegalArgumentException("주문 없음"));
 
-            // (정책) 주문 상태도 취소로 바꾸고 싶으면 주석 해제
-            // if (order.isCancelable()) order.cancel();
+            // (정책) 주문 상태도 취소로 바꾸고 싶으면 엔티티 전이 규칙 활용
+            // if (order.isCancelable()) order.cancelByCustomer();
 
             // 4) 멱등 복구: 이미 복구했다면 스킵
             if (!order.isBenefitsReverted()) {
