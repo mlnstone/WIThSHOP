@@ -2,6 +2,7 @@ package com.example.backend.orderHistory.service;
 
 import com.example.backend.common.enums.OrderStatus;
 import com.example.backend.orderHistory.dto.MenuSalesByUserDto;
+import com.example.backend.orderHistory.dto.MenuSalesSummaryView;
 import com.example.backend.orderHistoryDetail.repository.OrderHistoryDetailRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -24,5 +25,17 @@ public class OrderReportService {
             Pageable pageable
     ) {
         return detailRepository.findMenuSalesByUser(menuId, status, from, to, pageable);
+    }
+
+    public Page<MenuSalesSummaryView> getMenuSalesSummary(
+            OrderStatus status, LocalDateTime from, LocalDateTime to, Pageable pageable
+    ) {
+        return detailRepository.findMenuSalesSummary(status, from, to, pageable);
+    }
+
+    public Page<MenuSalesSummaryView> getBestMenusForUsers(
+            OrderStatus status, LocalDateTime from, LocalDateTime to, Pageable pageable
+    ) {
+        return detailRepository.findBestMenusForUsers(status, from, to, pageable);
     }
 }

@@ -2,6 +2,7 @@ package com.example.backend.orderHistory.controller;
 
 import com.example.backend.common.enums.OrderStatus;
 import com.example.backend.orderHistory.dto.MenuSalesByUserDto;
+import com.example.backend.orderHistory.dto.MenuSalesSummaryView;
 import com.example.backend.orderHistory.service.OrderReportService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
@@ -32,5 +33,16 @@ public class OrderReportAdminController {
             @ParameterObject Pageable pageable
     ) {
         return orderReportService.getMenuSalesByUser(menuId, status, from, to, pageable);
+    }
+
+    @Operation(summary = "메뉴별 판매 요약(관리자) – 수량 내림차순, 0초과만")
+    @GetMapping("/menus/stats/summary")
+    public Page<MenuSalesSummaryView> menuSalesSummary(
+            @RequestParam(required = false) OrderStatus status,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime from,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime to,
+            @ParameterObject Pageable pageable
+    ) {
+        return orderReportService.getMenuSalesSummary(status, from, to, pageable);
     }
 }
