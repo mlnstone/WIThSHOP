@@ -65,6 +65,11 @@ Google OAuth2 기반 로그인, JWT 인증, 상품 등록/주문/리뷰 등 **�
 
 </details>
 
+## aws 기초 배포 테스트
+<details>
+  <summary>백&프론트엔드 연동</summary>
+  <img width="1202" height="152" alt="image" src="https://github.com/user-attachments/assets/f0b81770-105b-4f67-b244-cee2afd692e1" />
 
+</details>
 
 > 추후 업데이트 예정입니다.
