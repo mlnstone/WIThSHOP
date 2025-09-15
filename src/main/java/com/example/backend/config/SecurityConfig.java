@@ -39,8 +39,8 @@ public class SecurityConfig {
 
 
     // 콜백 url
-//    private static final String FRONT_CALLBACK = "http://localhost:3000/oauth2/callback";
-    private static final String FRONT_CALLBACK = "http://43.201.201.212/oauth2/callback";
+    private static final String FRONT_CALLBACK = "http://localhost:3000/oauth2/callback";
+//    private static final String FRONT_CALLBACK = "http://43.201.201.212/oauth2/callback";
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
@@ -138,8 +138,8 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         var cfg = new org.springframework.web.cors.CorsConfiguration();
-//        cfg.setAllowedOrigins(java.util.List.of("http://localhost:3000"));
-        cfg.setAllowedOrigins(java.util.List.of("http://43.201.201.212/"));
+        cfg.setAllowedOrigins(java.util.List.of("http://localhost:3000"));
+//        cfg.setAllowedOrigins(java.util.List.of("http://43.201.201.212/"));
         cfg.setAllowedMethods(java.util.List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         cfg.setAllowedHeaders(java.util.List.of("Authorization", "Content-Type"));
         cfg.setExposedHeaders(java.util.List.of("Authorization"));
