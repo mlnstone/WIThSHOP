@@ -15,7 +15,6 @@ import java.security.Principal;
 @Tag(name = "유저", description = "유저")
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api")
 @PreAuthorize("isAuthenticated()")
 public class UserController {
     private final UserService userService;

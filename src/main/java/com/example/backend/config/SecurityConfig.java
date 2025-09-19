@@ -22,57 +22,62 @@ import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true)
 @RequiredArgsConstructor
 public class SecurityConfig {
+
     private final JwtTokenProvider jwtTokenProvider;
     private final TokenRedisRepository tokenRedisRepository;
     private final CustomOAuth2UserService customOAuth2UserService;
     private final OAuth2AuthenticationFailureHandler oAuth2AuthenticationFailureHandler;
 
-
-    // 콜백 url
-    private static final String FRONT_CALLBACK = "http://localhost:3000/oauth2/callback";
-//    private static final String FRONT_CALLBACK = "http://43.201.201.212/oauth2/callback";
+    private static final String FRONT_CALLBACK =
+            System.getenv().getOrDefault("FRONT_CALLBACK", "http://localhost:3000/oauth2/callback");
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
-        httpSecurity
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http
+                // REST API 기본 설정
                 .httpBasic().disable()
                 .csrf().disable()
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                .and()
-                .authorizeHttpRequests()
-                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                .requestMatchers(
-                        "/members/login",
-                        "/members/sign-up",
-                        "/members/refresh",
-                        "/v3/api-docs/**",
-                        "/swagger-ui/**",
-                        "/swagger-resources/**",
-                        "/webjars/**",
-                        "/configuration/**",
-                        "/oauth2/**",
-                        "/login/oauth2/**",
-                        "/oauth2/authorization/**",
-                        "/"
-                ).permitAll()
-                .anyRequest().permitAll(); // ← 여기만 바꿔주면 끝
-//                .anyRequest().authenticated();
+                .cors(c -> c.configurationSource(corsConfigurationSource()))
+                .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
-        httpSecurity
+                // 인가 설정 (context-path=/api 인 경우에도 아래 경로들은 그대로 써도 됨: 보안 매칭은 상대 경로)
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        // 공개 엔드포인트
+                        .requestMatchers(
+                                "/members/login",
+                                "/members/sign-up",
+                                "/members/refresh",
+                                "/v3/api-docs/**",
+                                "/swagger-ui/**",
+                                "/swagger-resources/**",
+                                "/webjars/**",
+                                "/configuration/**",
+                                "/oauth2/**",
+                                "/login/oauth2/**",
+                                "/oauth2/authorization/**",
+                                "/actuator/**",   // ALB 헬스체크
+                                "/"               // 루트
+                        ).permitAll()
+                        // 나머지는 인증 필요 (원하면 permitAll 로 바꿔도 됨)
+                        .anyRequest().permitAll()
+                )
+
+                // OAuth2 로그인 (성공 시 프론트 콜백으로 토큰 전달)
                 .oauth2Login(oauth2 -> oauth2
-                        .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
-                        // 성공 핸들러
+                        .userInfoEndpoint(u -> u.userService(customOAuth2UserService))
                         .successHandler((request, response, authentication) -> {
                             PrincipalDetails principal = (PrincipalDetails) authentication.getPrincipal();
 
@@ -80,9 +85,7 @@ public class SecurityConfig {
                             JwtToken token = jwtTokenProvider.generateToken(authentication);
 
                             // RefreshToken Redis 저장
-                            tokenRedisRepository.save(
-                                    new TokenRedis(principal.getUsername(), token.getRefreshToken())
-                            );
+                            tokenRedisRepository.save(new TokenRedis(principal.getUsername(), token.getRefreshToken()));
 
                             // 프론트 콜백 URL로 리다이렉트 (토큰 전달)
                             String redirectUrl = FRONT_CALLBACK
@@ -94,55 +97,29 @@ public class SecurityConfig {
                         .failureHandler(oAuth2AuthenticationFailureHandler)
                 );
 
-        // JWT 인증 필터 등록: UsernamePasswordAuthenticationFilter 전에 실행
-        httpSecurity.addFilterBefore(
-                new JwtAuthenticationFilter(jwtTokenProvider),
-                UsernamePasswordAuthenticationFilter.class
-        );
+        // JWT 인증 필터를 UsernamePasswordAuthenticationFilter 전에 실행
+        http.addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider),
+                UsernamePasswordAuthenticationFilter.class);
 
-        // 설정 완료 후 SecurityFilterChain 반환
-        return httpSecurity.build();
+        return http.build();
     }
-//    @Bean
-//    public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
-//        return httpSecurity
-//                // REST API이므로 basic auth 및 csrf 보안을 사용하지 않음
-//                .httpBasic().disable()
-//                .csrf().disable()
-//                // JWT를 사용하기 때문에 세션을 사용하지 않음
-//                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-//                .and()
-//                .authorizeHttpRequests()
-//                // 해당 API에 대해서는 모든 요청을 허가
-//                .requestMatchers(
-//                        "/members/login",
-//                        "/members/sign-up",
-//                        "/v3/api-docs/**",
-//                        "/swagger-ui/**",
-//                        "/swagger-resources/**",
-//                        "/webjars/**",
-//                        "/configuration/**",
-//                        "/",
-//                        "/oauth2/**",
-//                        "/login/oauth2/**",
-//                        "/oauth2/authorization/**"
-//                ).permitAll()
-//                // USER 권한이 있어야 요청할 수 있음
-//                // 이 밖에 모든 요청에 대해서 인증을 필요로 한다는 설정
-//                .anyRequest().authenticated()
-//                .and()
-//                // JWT 인증을 위하여 직접 구현한 필터를 UsernamePasswordAuthenticationFilter 전에 실행
-//                .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class).build();
-//    }
 
+    /**
+     * CORS 설정
+     * - 자격증명(쿠키/인증헤더) 사용하려면 Origin을 * 로 둘 수 없음 → 정확한 도메인 나열
+     */
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
-        var cfg = new org.springframework.web.cors.CorsConfiguration();
-        cfg.setAllowedOrigins(java.util.List.of("http://localhost:3000"));
-//        cfg.setAllowedOrigins(java.util.List.of("http://43.201.201.212/"));
-        cfg.setAllowedMethods(java.util.List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        cfg.setAllowedHeaders(java.util.List.of("Authorization", "Content-Type"));
-        cfg.setExposedHeaders(java.util.List.of("Authorization"));
+        CorsConfiguration cfg = new CorsConfiguration();
+        cfg.setAllowedOrigins(List.of( // www 사용 시
+                "http://localhost:3000"
+        ));
+        // 와일드카드가 필요하면 대신:
+        // cfg.setAllowedOriginPatterns(List.of("https://*.wit-h.shop", "http://localhost:*"));
+
+        cfg.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+        cfg.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+        cfg.setExposedHeaders(List.of("Authorization"));
         cfg.setAllowCredentials(true);
         cfg.setMaxAge(3600L);
         return request -> cfg;
@@ -150,7 +127,6 @@ public class SecurityConfig {
 
     @Bean
     public static PasswordEncoder passwordEncoder() {
-        // 패스워드 암호화 (BCrypt)
         return PasswordEncoderFactories.createDelegatingPasswordEncoder();
     }
 
@@ -158,6 +134,4 @@ public class SecurityConfig {
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
-
-
 }

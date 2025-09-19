@@ -14,7 +14,7 @@ import java.security.Principal;
 
 @Tag(name = "포트원")
 @RestController
-@RequestMapping("/api/payments")
+@RequestMapping("/payments")
 @RequiredArgsConstructor
 public class PortOneController {
 

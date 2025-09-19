@@ -16,7 +16,7 @@ public class MainController {
 
     private final UserRepository userRepository;
 
-    @GetMapping("/api")
+    @GetMapping("/")
     public Map<String, String> me() {
         String email = SecurityUtil.getCurrentUsername(); // 로그인한 사용자의 이메일
         User user = userRepository.findByUserEmail(email)
