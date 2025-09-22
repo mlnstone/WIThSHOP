@@ -72,8 +72,9 @@ Google OAuth2 기반 로그인, JWT 인증, 상품 등록/주문/리뷰 등 **�
   <summary>카카오 맵</summary>
 
   현재 위치 & 근무지 주소
+  
+<img width="406" height="329" alt="image" src="https://github.com/user-attachments/assets/f9cf0a23-bdf9-4ffe-a943-ae242b85bfc4" />
 
-  <img width="406" height="329" alt="image" src="https://github.com/user-attachments/assets/eea12971-219f-4d29-aef0-6d1d8ce3e14d" />
 </details>
 
 <details>
