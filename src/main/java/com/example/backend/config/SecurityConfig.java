@@ -66,6 +66,7 @@ public class SecurityConfig {
                                 "/webjars/**",
                                 "/configuration/**",
                                 "/oauth2/**",
+                                "/auth/phone/**",
                                 "/login/oauth2/**",
                                 "/oauth2/authorization/**",
                                 "/actuator/**",   // ALB 헬스체크

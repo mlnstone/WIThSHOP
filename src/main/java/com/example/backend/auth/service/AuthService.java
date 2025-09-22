@@ -4,6 +4,7 @@ import com.example.backend.auth.JwtToken;
 import com.example.backend.auth.JwtTokenProvider;
 import com.example.backend.auth.dto.SignUpRequestDto;
 import com.example.backend.auth.dto.UserManagementDto;
+import com.example.backend.auth.phone.PhoneVerificationService;
 import com.example.backend.common.enums.Role;
 import com.example.backend.common.enums.UserProvider;
 import com.example.backend.exception.DuplicateEmailException;
@@ -41,9 +42,10 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final PointRepository pointRepository;
     private final JwtTokenProvider jwtTokenProvider;
-    private final PointSignupConfigRepository pointSignupConfigRepository;
     private final TokenRedisRepository tokenRedisRepository;
     private final AuthenticationManager authenticationManager;
+    private final PhoneVerificationService phoneVerificationService;
+    private final PointSignupConfigRepository pointSignupConfigRepository;
 
     public JwtToken login(String email, String password) {
         try {
@@ -116,39 +118,42 @@ public class AuthService {
 
     @Transactional
     public UserManagementDto signup(SignUpRequestDto request) {
-        // 1900-01-01 ~ 오늘 까지만 허용
+        // 1) 생년월일 검증
         LocalDate min = LocalDate.of(1900, 1, 1);
         LocalDate today = LocalDate.now();
 
-        // 프론트가 date input이면 YYYY-MM-DD로 오므로 그대로 파싱
         LocalDate birth;
         try {
-            birth = LocalDate.parse(request.getBirth()); // "YYYY-MM-DD"
+            birth = LocalDate.parse(request.getBirth());
         } catch (DateTimeParseException e) {
             throw new IllegalArgumentException("생년월일 형식이 올바르지 않습니다. (YYYY-MM-DD)");
         }
-
         if (birth.isBefore(min) || birth.isAfter(today)) {
             throw new IllegalArgumentException("생년월일은 1900-01-01 이후, 오늘 이전이어야 합니다.");
         }
 
-        // 중복 이메일 검사 등 기존 로직...
-        if (userRepository.existsByUserEmail(request.getEmail())) {
-            throw new DuplicateEmailException();
-        }
+        // 2) 이메일 중복 검사
         if (userRepository.existsByUserEmail(request.getEmail())) {
             throw new DuplicateEmailException();
         }
 
+        // 3) 휴대폰 인증번호 검증
+        boolean verified = phoneVerificationService.verifyCodeForSignup(request.getPhone(), request.getCode());
+        if (!verified) {
+            throw new IllegalArgumentException("휴대폰 인증에 실패했습니다.");
+        }
+
+        // 4) User 저장
         String encodedPassword = passwordEncoder.encode(request.getPassword());
         User user = request.toEntity(
                 encodedPassword,
                 Role.CUSTOMER,
                 UserProvider.LOCAL
         );
-
+        user.markPhoneVerified(request.getPhone());  // 📌 휴대폰 번호+인증 시간 기록
         User saved = userRepository.save(user);
 
+        // 5) 가입 포인트 적립
         long signupBonus = pointSignupConfigRepository.findById(1L)
                 .map(PointSignupConfig::getAmount)
                 .orElse(0L);

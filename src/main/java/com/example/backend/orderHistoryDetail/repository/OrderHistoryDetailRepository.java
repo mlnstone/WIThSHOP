@@ -1,7 +1,7 @@
-// src/main/java/com/example/backend/orderHistoryDetail/repository/OrderHistoryDetailRepository.java
 package com.example.backend.orderHistoryDetail.repository;
 
 import com.example.backend.common.enums.OrderStatus;
+import com.example.backend.orderHistory.dto.MenuBestItemView;
 import com.example.backend.orderHistory.dto.MenuSalesByUserDto;
 import com.example.backend.orderHistory.dto.MenuSalesSummaryView;
 import com.example.backend.orderHistory.entity.OrderHistory;
@@ -151,5 +151,55 @@ public interface OrderHistoryDetailRepository extends JpaRepository<OrderHistory
             @Param("from") LocalDateTime from,
             @Param("to") LocalDateTime to,
             Pageable pageable
+    );
+
+    @Query(
+            value = """
+                        SELECT
+                          m.menu_id                                  AS menuId,
+                          m.menu_name                                AS menuName,
+                          m.image                                    AS image,
+                          m.sale_price                               AS salePrice,
+                          SUM(d.quantity)                            AS totalQty,
+                          SUM(d.price * d.quantity)                  AS totalRevenue
+                        FROM order_history_detail d
+                        JOIN order_history o ON o.order_id = d.order_id
+                        JOIN menu m          ON m.menu_id  = d.menu_id
+                        WHERE m.category_id = :categoryId
+                          AND (
+                            (:status IS NULL AND o.order_status IN ('APPROVED','SHIPPED','DELIVERED'))
+                            OR (:status IS NOT NULL AND o.order_status = :status)
+                          )
+                          AND (:from IS NULL OR o.order_created_at >= :from)
+                          AND (:to   IS NULL OR o.order_created_at <  :to)
+                        GROUP BY m.menu_id, m.menu_name, m.image, m.sale_price
+                        HAVING SUM(d.quantity) > 0
+                        ORDER BY SUM(d.quantity) DESC
+                    """,
+            countQuery = """
+                        SELECT COUNT(1) FROM (
+                          SELECT m.menu_id
+                          FROM order_history_detail d
+                          JOIN order_history o ON o.order_id = d.order_id
+                          JOIN menu m          ON m.menu_id  = d.menu_id
+                          WHERE m.category_id = :categoryId
+                            AND (
+                              (:status IS NULL AND o.order_status IN ('APPROVED','SHIPPED','DELIVERED'))
+                              OR (:status IS NOT NULL AND o.order_status = :status)
+                            )
+                            AND (:from IS NULL OR o.order_created_at >= :from)
+                            AND (:to   IS NULL OR o.order_created_at <  :to)
+                          GROUP BY m.menu_id
+                          HAVING SUM(d.quantity) > 0
+                        ) t
+                    """,
+            nativeQuery = true
+    )
+    Page<MenuBestItemView> findBestByCategory(
+            @Param("categoryId") Long categoryId,
+            @Param("status") com.example.backend.common.enums.OrderStatus status,
+            @Param("from") java.time.LocalDateTime from,
+            @Param("to") java.time.LocalDateTime to,
+            org.springframework.data.domain.Pageable pageable
     );
 }

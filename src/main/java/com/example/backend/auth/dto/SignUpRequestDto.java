@@ -26,6 +26,7 @@ public class SignUpRequestDto {
 
     @NotBlank(message = "이름은 필수 입력 값입니다.")
     private String name;
+
     @NotBlank(message = "생년월일은 필수입니다.")
     private String birth;
 
@@ -35,6 +36,12 @@ public class SignUpRequestDto {
     @NotBlank(message = "전화번호는 필수입니다.")
     private String phone;
 
+    @NotBlank(message = "인증번호는 필수입니다.")
+    private String code;   // 📌 OTP 인증번호 추가
+
+    /**
+     * User 엔티티 변환
+     */
     public User toEntity(String encodedPassword, Role role, UserProvider provider) {
         return User.builder()
                 .userEmail(email)
