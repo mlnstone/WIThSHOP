@@ -1,4 +1,5 @@
 # 🛒 WIThSHOP - 쇼핑몰 이커머스 서비스
+https://wit-h.shop
 
 **WIThSHOP**은 누구나 상품을 등록하고 구매할 수 있는 오픈마켓 형태의 쇼핑몰 플랫폼입니다.  
 Google OAuth2 기반 로그인, JWT 인증, 상품 등록/주문/리뷰 등 **쇼핑몰의 핵심 기능**을 직접 구현한 프로젝트입니다.
@@ -53,23 +54,32 @@ Google OAuth2 기반 로그인, JWT 인증, 상품 등록/주문/리뷰 등 **�
   <img width="367" height="228" alt="image" src="https://github.com/user-attachments/assets/faac94e9-f4c9-4372-a579-a82ba4b118bd" />
 </details>
 
+## 기능 구현
 
-## 결제 구현
 <details>
-  <summary>1 (가격은 1로 설정했습니다)</summary>
-  <img width="406" height="329" alt="image" src="https://github.com/user-attachments/assets/7d0e4833-7960-416f-89a8-7145920aa487" />
-</details>
-<details>
-  <summary>2</summary>
+  <summary>결제</summary>
+  <details>
+    <summary>1 (가격은 1로 설정했습니다)</summary>
+    <img width="406" height="329" alt="image" src="https://github.com/user-attachments/assets/7d0e4833-7960-416f-89a8-7145920aa487" />
+  </details>
+  <details>
+    <summary>2</summary>
     <img width="406" height="329" alt="image" src="https://github.com/user-attachments/assets/1a47d116-ae18-497a-8e13-7c881a9d4674" />
-
+  </details>
 </details>
 
-## aws 기초 배포 테스트
 <details>
-  <summary>백&프론트엔드 연동</summary>
-  <img width="1202" height="152" alt="image" src="https://github.com/user-attachments/assets/f0b81770-105b-4f67-b244-cee2afd692e1" />
+  <summary>카카오 맵</summary>
 
+  현재 위치 & 근무지 주소
+
+  <img width="406" height="329" alt="image" src="https://github.com/user-attachments/assets/eea12971-219f-4d29-aef0-6d1d8ce3e14d" />
+</details>
+
+<details>
+  <summary>문자 인증</summary>
+    <img width="406" height="329" alt="image" src="https://github.com/user-attachments/assets/faff4e99-7e91-4e4b-92ba-9bd1aa60b84b" />
+    <img width="406" height="329" alt="image" src="https://github.com/user-attachments/assets/12ca8065-4327-404f-8a9c-34a875b72280" />
 </details>
 
 > 추후 업데이트 예정입니다.
