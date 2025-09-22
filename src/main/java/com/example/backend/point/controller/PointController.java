@@ -27,7 +27,7 @@ public class PointController {
     private final PointSignupConfigService pointSignupConfigService;
 
     @Operation(summary = "가입 적립금 현재값 조회")
-    @GetMapping
+    @GetMapping("/point/signup")
     public ResponseEntity<Long> get() {
         return ResponseEntity.ok(pointSignupConfigService.currentAmount());
     }

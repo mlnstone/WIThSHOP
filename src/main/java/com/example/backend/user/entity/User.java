@@ -55,6 +55,7 @@ public class User extends EntityDate {
     private Gender gender;
 
     private String phone;
+    private LocalDateTime phoneVerifiedAt;
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonManagedReference
@@ -90,6 +91,12 @@ public class User extends EntityDate {
         if (birth != null && !birth.isBlank()) this.birth = birth;
         if (gender != null) this.gender = gender;
         if (phone != null && !phone.isBlank()) this.phone = phone;
+    }
+
+    // 번호인증
+    public void markPhoneVerified(String phone) {
+        this.phone = phone;
+        this.phoneVerifiedAt = LocalDateTime.now();
     }
 }
 

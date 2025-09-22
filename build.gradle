@@ -67,6 +67,13 @@ dependencies {
     // aws s3
     implementation 'org.springframework.cloud:spring-cloud-starter-aws:2.2.6.RELEASE'
 
+    // HTML→PDF
+    implementation 'com.openhtmltopdf:openhtmltopdf-pdfbox:1.0.10'
+    implementation 'com.openhtmltopdf:openhtmltopdf-slf4j:1.0.10'
+    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+
+    // cool sms
+    implementation 'net.nurigo:sdk:4.3.2'
 }
 tasks.named('test') {
     useJUnitPlatform()
